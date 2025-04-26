@@ -1,6 +1,7 @@
 import React from "react";
 import LoginFormComponent from "./Components/User/LoginFormComponent";
 import CreateUserComponent from "./Components/User/CreateUserComponent";
+import ListProductsComponent from "./Components/Products/ListProductsComponent";
 
 let App = () => {
 
@@ -14,6 +15,7 @@ let App = () => {
             <h1>Wallapep</h1>
             <CreateUserComponent/>
             <LoginFormComponent callBackOnFinishLogin={callBackOnFinishLogin}/>
+            <ListProductsComponent/>
         </div>
     )
 }

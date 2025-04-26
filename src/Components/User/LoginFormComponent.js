@@ -17,6 +17,10 @@ let LoginFormComponent = (props) => {
 
         if (response.ok) {
             let responseBody = await response.json();
+            if (responseBody.apiKey && responseBody.email) {
+                localStorage.setItem("apiKey", responseBody.apiKey)
+                localStorage.setItem("email", responseBody.email)
+            }
             console.log("ok " + responseBody)
         } else {
             let responseBody = await response.json();
