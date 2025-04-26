@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import {Link} from "react-router-dom";
 
 let ListProductsComponent = () => {
     let [products, setProducts] = useState([])
@@ -33,7 +34,8 @@ let ListProductsComponent = () => {
         <div>
             <h2>Products</h2>
             <ul>
-                {products.map(p => <li key={p.id}> {p.title} {p.price} </li>)}
+                {products.map(p => <li key={p.id}> {p.title} {p.price} <Link to={"/products/edit/" + p.id}> Edit </Link>
+                </li>)}
             </ul>
         </div>
     )

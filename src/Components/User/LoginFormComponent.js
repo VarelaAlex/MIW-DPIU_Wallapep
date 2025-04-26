@@ -1,7 +1,9 @@
 import {useState} from "react";
 import {modifyStateProperty} from "../../Utils/UtilsState";
+import {useNavigate} from "react-router-dom";
 
-let LoginFormComponent = (props) => {
+let LoginFormComponent = () => {
+    let navigate = useNavigate();
 
     let [formData, setFormData] = useState({
         email: '',
@@ -22,6 +24,7 @@ let LoginFormComponent = (props) => {
                 localStorage.setItem("email", responseBody.email)
             }
             console.log("ok " + responseBody)
+            navigate("/products")
         } else {
             let responseBody = await response.json();
             let serverErrors = responseBody.errors;
