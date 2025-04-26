@@ -1,19 +1,23 @@
-import {useState, useRef} from "react";
+import {useRef, useState} from "react";
 
-let LoginFormComponent = () => {
+let LoginFormComponent = (props) => {
 
     let [formData, setFormData] = useState({
         email: '- empty email -',
         password: '- empty password -',
     });
 
-    let [counter,setCounter] = useState(0);
+    let [counter, setCounter] = useState(0);
     let counterRef = useRef(0);
+
+    let clickLogin = () => {
+        props.callBackOnFinishLogin(formData);
+    }
 
     let onChangeEmail = (e) => {
         let currentCounter = counter;
-        currentCounter +=1;
-        currentCounter +=1;
+        currentCounter += 1;
+        currentCounter += 1;
         setCounter(currentCounter);
 
         setFormData({
@@ -31,15 +35,13 @@ let LoginFormComponent = () => {
 
     return (
         <div>
-            <form>
-                <input onChange ={ onChangeEmail } type="text" name="email"/>
-                <input onChange ={ onChangePassword } type="password" name="password" />
-                <input type="submit" value="Login"/>
-            </form>
+                <input onChange={onChangeEmail} type="text" name="email"/>
+                <input onChange={onChangePassword} type="password" name="password"/>
+                <button onClick={clickLogin}>Accept</button>
             <p> {formData.email} </p>
             <p> {formData.password} </p>
-            <p> { counter } </p>
-            <p>CounterRef: { counterRef.current } </p>
+            <p> {counter} </p>
+            <p>CounterRef: {counterRef.current} </p>
         </div>
 
     )
