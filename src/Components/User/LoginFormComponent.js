@@ -1,4 +1,5 @@
 import {useState} from "react";
+import {modifyStateProperty} from "../../Utils/UtilsState";
 
 let LoginFormComponent = (props) => {
 
@@ -7,22 +8,8 @@ let LoginFormComponent = (props) => {
         password: '',
     })
 
-    let onChangeEmail = (e) => {
-        setFormData({
-            ...formData,
-            email: e.target.value
-        });
-    }
-
-    let onChangePassword = (e) => {
-        setFormData({
-            ...formData,
-            password: e.target.value
-        });
-    }
-
     let clickLogin = async () => {
-        let response = await fetch("http://localhost:4000/users/login", {
+        let response = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/users/login`, {
             method: "POST",
             headers: {"Content-Type": "application/json "},
             body: JSON.stringify(formData)
@@ -43,8 +30,13 @@ let LoginFormComponent = (props) => {
     return (
         <div>
             <h2>Login User</h2>
-            <input onChange={onChangeEmail} type="text" name="email"/>
-            <input onChange={onChangePassword} type="password" name="password"/>
+            <input onChange={(i) => {
+                modifyStateProperty(formData, setFormData, "email", i.currentTarget.value)
+            }} type="text" name="email"/>
+            <input onChange={(i) => {
+                modifyStateProperty(formData, setFormData, "password", i.currentTarget.value)
+            }} type="password" name="password"/>
+
             <button onClick={clickLogin}>Login User</button>
         </div>
     )
