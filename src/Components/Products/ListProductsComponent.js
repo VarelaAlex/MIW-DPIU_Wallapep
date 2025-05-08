@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
+import {Card, Col, Image, Row} from 'antd';
 
 let ListProductsComponent = () => {
     let [products, setProducts] = useState([])
@@ -9,13 +10,11 @@ let ListProductsComponent = () => {
     }, [])
 
     let getProducts = async () => {
-        let response = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/products`,
-            {
-                method: "GET",
-                headers: {
-                    "apikey": localStorage.getItem("apiKey")
-                },
-            });
+        let response = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/products`, {
+            method: "GET", headers: {
+                "apikey": localStorage.getItem("apiKey")
+            },
+        });
 
         if (response.ok) {
             let jsonData = await response.json();
@@ -30,15 +29,18 @@ let ListProductsComponent = () => {
     }
 
 
-    return (
-        <div>
-            <h2>Products</h2>
-            <ul>
-                {products.map(p => <li key={p.id}> {p.title} {p.price} <Link to={"/products/edit/" + p.id}> Edit </Link>
-                </li>)}
-            </ul>
-        </div>
-    )
+    return (<div>
+        <h2>Products</h2>
+        <Row gutter={[16, 16]}>
+            {products.map(p => <Col span={8}>
+                <Link to={"/products/edit/" + p.id}>
+                    <Card hoverable key={p.id} title={p.title} cover={<Image src="/item1.png" preview={false}/>}>
+                        {p.price}
+                    </Card>
+                </Link>
+            </Col>)}
+        </Row>
+    </div>)
 }
 
 export default ListProductsComponent;
