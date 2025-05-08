@@ -33,7 +33,7 @@ let ListProductsComponent = () => {
         <h2>Products</h2>
         <Row gutter={[16, 16]}>
             {products.map(p => <Col span={8}>
-                <Link to={"/products/edit/" + p.id}>
+                <Link to={`/products/${p.id}`}>
                     <Card hoverable key={p.id} title={p.title} cover={<Image src="/item1.png" preview={false}/>}>
                         {p.price}
                     </Card>
