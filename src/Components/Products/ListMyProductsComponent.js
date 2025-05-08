@@ -1,13 +1,15 @@
-import React, {useEffect, useState} from "react";
-import {Button, Card, Col, Empty, Input, Row, Space, Statistic, Table, Tooltip, Typography} from 'antd';
+import React, {useEffect, useRef, useState} from "react";
+import {Button, Card, Col, Empty, Input, notification, Row, Space, Statistic, Table, Tooltip, Typography} from 'antd';
 import {Link, useNavigate} from "react-router-dom";
 import {SearchOutlined} from "@ant-design/icons";
 
-let ListMyProductsComponent = () => {
+let ListMyProductsComponent = ({openCustomNotification}) => {
     let [products, setProducts] = useState([])
-    const [filteredProducts, setFilteredProducts] = useState([]);
-    const [searchText, setSearchText] = useState("");
-    const [stats, setStats] = useState({soldCount: 0, totalIncome: 0});
+    let [filteredProducts, setFilteredProducts] = useState([]);
+    let [searchText, setSearchText] = useState("");
+    let [stats, setStats] = useState({soldCount: 0, totalIncome: 0});
+    let deletionTimeoutRef = useRef(null);
+    const deletionCancelledRef = useRef(false);
     let navigate = useNavigate();
 
     useEffect(() => {
@@ -52,27 +54,69 @@ let ListMyProductsComponent = () => {
         setFilteredProducts(products.filter((product) => product.title.toLowerCase().includes(text) || product.description?.toLowerCase().includes(text)));
     };
 
-    let deleteProduct = async (id) => {
+    const deleteProduct = (id) => {
+
+        let p = products.filter((product) => product.id === id);
+        if (p[0].buyerId) {
+            openCustomNotification("top", "No se puede borrar un producto vendido", "error")
+            return;
+        }
+
+        const key = `open${Date.now()}`;
+        deletionCancelledRef.current = false;
+        notification.open({
+            message: 'Producto eliminado',
+            description: 'El producto será eliminado en 5 segundos. Haga clic en "Deshacer" para cancelar.',
+            placement: "top",
+            actions: <Button type="primary" onClick={() => undoDelete(key)}>
+                Deshacer
+            </Button>,
+            key,
+            onClose: () => {
+                if (!deletionCancelledRef.current) {
+                    confirmDelete(id)
+                }
+            },
+            showProgress: true,
+            pauseOnHover: false,
+        });
+
+        deletionTimeoutRef.current = setTimeout(() => {
+            confirmDelete(id);
+            notification.destroy(key);
+        }, 5000);
+    };
+
+    const undoDelete = (key) => {
+        deletionCancelledRef.current = true;
+        clearTimeout(deletionTimeoutRef.current);
+        notification.destroy(key);
+        deletionTimeoutRef.current = null;
+        openCustomNotification("top", "Se ha cancelado la eliminación del producto", "info")
+    };
+
+    const confirmDelete = async (id) => {
         let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + id, {
             method: "DELETE", headers: {
                 "apikey": localStorage.getItem("apiKey")
             },
         });
-
         if (response.ok) {
             let jsonData = await response.json();
             if (jsonData.deleted) {
-                let productsAfterDelete = products.filter(p => p.id !== id)
-                setProducts(productsAfterDelete)
+                let productsAfterDelete = products.filter(p => p.id !== id);
+                setProducts(productsAfterDelete);
+                setFilteredProducts(productsAfterDelete);
+                openCustomNotification("top", "Se ha eliminado el producto", "success")
             }
         } else {
             let responseBody = await response.json();
             let serverErrors = responseBody.errors;
             serverErrors.forEach(e => {
-                console.log("Error: " + e.msg)
-            })
+                console.log("Error: " + e.msg);
+            });
         }
-    }
+    };
 
     const [editingKey, setEditingKey] = useState('');
     const isEditing = (product) => product.key === editingKey;
@@ -94,17 +138,26 @@ let ListMyProductsComponent = () => {
             const item = newData[index];
             const updatedItem = {...item, ...editableFields};
 
-            // Optional: send update to backend
-            await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + key, {
+            let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + key, {
                 method: "PUT", headers: {
                     "Content-Type": "application/json", "apikey": localStorage.getItem("apiKey")
                 }, body: JSON.stringify(updatedItem),
             });
 
-            newData.splice(index, 1, updatedItem);
-            setProducts(newData);
-            setFilteredProducts(newData);
-            setEditingKey('');
+            if (response.ok) {
+                newData.splice(index, 1, updatedItem);
+                setProducts(newData);
+                setFilteredProducts(newData);
+                setEditingKey('');
+                openCustomNotification("top", "Producto actualizado", "success")
+            } else {
+                let responseBody = await response.json();
+                let serverErrors = responseBody.errors;
+                serverErrors.forEach(e => {
+                    console.log("Error: " + e.msg)
+                })
+                openCustomNotification("top", serverErrors.map((e) => <Text>{e.msg}</Text>), "error")
+            }
         }
     };
 
@@ -113,16 +166,16 @@ let ListMyProductsComponent = () => {
     };
 
     const columns = [{
-        title: "Id", dataIndex: [], key: "id", width: 50, render: (_, product) => {
+        title: "Id", dataIndex: [], key: "id", width: 60, render: (_, product) => {
             return <Link to={`/products/edit/${product.id}`}>{product.id}</Link>;
         }
     }, {
         title: "Title", dataIndex: "title", key: "title", ellipsis: true, render: (_, product) => {
             const editable = isEditing(product);
             return editable ? (<Input
-                    value={editableFields.title}
-                    onChange={(e) => setEditableFields({...editableFields, title: e.target.value})}
-                />) : (<Tooltip placement="topLeft" title={product.title}>{product.title}</Tooltip>);
+                value={editableFields.title}
+                onChange={(e) => setEditableFields({...editableFields, title: e.target.value})}
+            />) : (<Tooltip placement="topLeft" title={product.title}>{product.title}</Tooltip>);
         }
     }, {
         title: "Description",
@@ -133,17 +186,17 @@ let ListMyProductsComponent = () => {
         render: (_, product) => {
             const editable = isEditing(product);
             return editable ? (<Input
-                    value={editableFields.description}
-                    onChange={(e) => setEditableFields({...editableFields, description: e.target.value})}
-                />) : (<Tooltip placement="topLeft" title={product.description}>{product.description}</Tooltip>);
+                value={editableFields.description}
+                onChange={(e) => setEditableFields({...editableFields, description: e.target.value})}
+            />) : (<Tooltip placement="topLeft" title={product.description}>{product.description}</Tooltip>);
         }
     }, {
         title: "Price", key: "price", render: (_, product) => {
             const editable = isEditing(product);
             return editable ? (<Input
-                    value={editableFields.price}
-                    onChange={(e) => setEditableFields({...editableFields, price: e.target.value})}
-                />) : (<Text>{product.price} €</Text>);
+                value={editableFields.price}
+                onChange={(e) => setEditableFields({...editableFields, price: e.target.value})}
+            />) : (<Text>{product.price} €</Text>);
         }, sorter: (a, b) => a.price - b.price, width: 100
     }, {
         title: "Date", dataIndex: "date", key: "date"
@@ -156,12 +209,12 @@ let ListMyProductsComponent = () => {
         title: "Actions", key: "actions", render: (_, product) => {
             const editable = isEditing(product);
             return editable ? (<Space.Compact direction="vertical">
-                    <Link to="#" onClick={() => save(product.key)}>Save</Link>
-                    <Link to="#" onClick={cancel}>Cancel</Link>
-                </Space.Compact>) : (<Space.Compact direction="vertical">
-                    <Link to="#" onClick={() => deleteProduct(product.id)}>Delete</Link>
-                    <Link to="#" onClick={() => edit(product)}>Edit</Link>
-                </Space.Compact>);
+                <Link to="#" onClick={() => save(product.key)}>Save</Link>
+                <Link to="#" onClick={cancel}>Cancel</Link>
+            </Space.Compact>) : (<Space.Compact direction="vertical">
+                <Link to="#" onClick={() => deleteProduct(product.id)}>Delete</Link>
+                <Link to="#" onClick={() => edit(product)}>Edit</Link>
+            </Space.Compact>);
         }
     }];
 
@@ -187,6 +240,11 @@ let ListMyProductsComponent = () => {
                     allowClear
                     style={{margin: "2vh 0vh", width: "30vmax"}}
                 />
+                {filteredProducts && filteredProducts.length > 0 ?
+                    <Table columns={columns} dataSource={filteredProducts} scroll={{x: "1000px"}}></Table> : <Empty
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        styles={{image: {height: 60}}}
+                        description={<Text>No hay productos con estas características</Text>}/>}
             </div> : <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 styles={{image: {height: 60}}}
@@ -194,11 +252,6 @@ let ListMyProductsComponent = () => {
             >
                 <Button type="primary" onClick={() => navigate("/products/create")}>Create Now</Button>
             </Empty>}
-            {filteredProducts && filteredProducts.length > 0 ?
-                <Table columns={columns} dataSource={filteredProducts} scroll={{x: "1000px"}}></Table> : <Empty
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    styles={{image: {height: 60}}}
-                    description={<Text>No hay productos con estas características</Text>}/>}
         </Col>
     </Row>)
 }

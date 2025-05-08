@@ -9,7 +9,7 @@ let MenuAppComponent = () => {
         <div>
             <div className="logo"/>
             <Menu theme="dark" mode="horizontal" items={[
-                {key: "logo", label: <Image src="/logo.png" width='40px' height='40px' />},
+                {key: "logo", label: <Image src="/logo.png" width='40px' height='40px' preview={false}/>},
                 {key: "menuItems", icon: <FireOutlined/>, label: <Link to="/">Home</Link>},
                 {key: "menuLogin", icon: <LoginOutlined/>, label: <Link to="/login">Login</Link>},
                 {key: "menuRegister", label: <Link to="/register">Register</Link>},

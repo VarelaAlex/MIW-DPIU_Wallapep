@@ -3,7 +3,7 @@ import {useParams} from "react-router-dom";
 import {Button, Card, Col, Descriptions, Image, Row, Typography} from 'antd';
 import {ShoppingOutlined} from '@ant-design/icons';
 
-let DetailsProductComponent = () => {
+let DetailsProductComponent = ({openCustomNotification}) => {
     let [product, setProduct] = useState({})
     const {id} = useParams();
 
@@ -42,7 +42,7 @@ let DetailsProductComponent = () => {
         if (response.ok) {
             let jsonData = await response.json();
             if (jsonData.affectedRows === 1) {
-
+                openCustomNotification("top", "Producto comprado", "success")
             }
         } else {
             let responseBody = await response.json();

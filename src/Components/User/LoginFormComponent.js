@@ -10,7 +10,7 @@ let LoginFormComponent = ({setLogin}) => {
     let [formData, setFormData] = useState({
         email: '', password: '',
     })
-    let [error, setError] = useState(false);
+    let [errors, setErrors] = useState({});
 
     let clickLogin = async () => {
         let response = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/users/login`, {
@@ -32,18 +32,18 @@ let LoginFormComponent = ({setLogin}) => {
             serverErrors.forEach(e => {
                 console.log("Error: " + e.msg);
             })
-            setError(true);
+            setErrors(serverErrors);
         }
     }
 
     return (<Row align="middle" justify="center" style={{minHeight: "70vh"}}>
         <Col xs={0} sm={0} md={12} lg={8} xl={6}>
-            <Image src="/iniciar-sesion.png" width="100%"/>
+            <Image src="/iniciar-sesion.png" width="100%" preview={false}/>
         </Col>
         <Col xs={24} sm={24} md={12} lg={12} xl={10}>
             <Card title="Login" style={{width: "100%", margin: "15px"}}>
-                {error && <Alert style={{marginBottom: "2vh"}} type="error"
-                                 message="Algo ha ido mal, inténtelo más tarde"/>}
+                {errors && errors.map((e) => <Alert style={{marginBottom: "2vh"}} type="error"
+                                                    message={e.msg}/>)}
                 <Form
                     name="login"
                     initialValues={{remember: true}}

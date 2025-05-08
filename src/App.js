@@ -4,10 +4,10 @@ import CreateUserComponent from "./Components/User/CreateUserComponent";
 import ListProductsComponent from "./Components/Products/ListProductsComponent";
 import {Link, Route, Routes, useLocation, useNavigate} from "react-router-dom";
 import EditProductComponent from "./Components/Products/EditProductComponent";
-import {Avatar, Col, Image, Layout, Menu, Row, Typography} from 'antd';
+import {Avatar, Col, Image, Layout, Menu, notification, Row, Typography} from 'antd';
 import FooterAppComponent from "./Components/Layout/FooterAppComponent";
 import DetailsProductComponent from "./Components/Products/DetailsProductComponent";
-import {LoginOutlined} from "@ant-design/icons";
+import {LoginOutlined, UserAddOutlined} from "@ant-design/icons";
 import CreateProductComponent from "./Components/Products/CreateProductComponent";
 import ListMyProductsComponent from "./Components/Products/ListMyProductsComponent";
 
@@ -16,6 +16,7 @@ let App = () => {
     let navigate = useNavigate()
     let [login, setLogin] = useState(false);
     let location = useLocation();
+    let [api, contextHolder] = notification.useNotification();
 
     let {Header, Content} = Layout;
 
@@ -75,20 +76,27 @@ let App = () => {
         navigate("/login")
     }
 
+    const openCustomNotification = (placement, text, type) => {
+        api[type]({
+            message: 'Notification', description: text, placement,
+        });
+    };
+
     const {Text} = Typography;
     return (<Layout className="layout" style={{minHeight: "100vh"}}>
+        {contextHolder}
         <Header>
             <Row>
                 <Col xs={18} sm={19} md={20} lg={21} xl={22}>
                     {!login && <Menu theme="dark" mode="horizontal" items={[{
-                        key: "logo", label: <Image src="/logo.png" width="40px" height="40px" preview={false} />
+                        key: "logo", label: <Image src="/logo.png" width="40px" height="40px" preview={false}/>
                     }, {key: "menuLogin", icon: <LoginOutlined/>, label: <Link to="/login">Login</Link>}, {
-                        key: "menuRegister", label: <Link to="/register">Register</Link>
+                        key: "menuRegister", icon: <UserAddOutlined/>, label: <Link to="/register">Register</Link>
                     },]}>
                     </Menu>}
 
                     {login && <Menu theme="dark" mode="horizontal" items={[{
-                        key: "logo", label: <Image src="/logo.png" width="40px" height="40px" preview={false} />
+                        key: "logo", label: <Image src="/logo.png" width="40px" height="40px" preview={false}/>
                     }, {key: "menuProducts", label: <Link to="/products">Products</Link>}, {
                         key: "menuMyProduct", label: <Link to="/products/own">My Products</Link>
                     }, {
@@ -113,13 +121,16 @@ let App = () => {
             <div className="site-layout-content">
                 <Routes>
                     <Route path="/" element={<h1>Index</h1>}/>
-                    <Route path="/register" element={<CreateUserComponent/>}/>
+                    <Route path="/register"
+                           element={<CreateUserComponent openCustomNotification={openCustomNotification}/>}/>
                     <Route path="/login" element={<LoginFormComponent setLogin={setLogin}/>}/>
                     <Route path="/products" element={<ListProductsComponent/>}/>
-                    <Route path="/products/edit/:id" element={<EditProductComponent/>}></Route>
-                    <Route path="/products/:id" element={<DetailsProductComponent/>}/>
-                    <Route path="/products/create" element={<CreateProductComponent/>}></Route>
-                    <Route path="/products/own" element={<ListMyProductsComponent/>}></Route>
+                    <Route path="/products/edit/:id" element={<EditProductComponent openCustomNotification={openCustomNotification}/>}></Route>
+                    <Route path="/products/:id" element={<DetailsProductComponent openCustomNotification={openCustomNotification}/>}/>
+                    <Route path="/products/create"
+                           element={<CreateProductComponent openCustomNotification={openCustomNotification}/>}></Route>
+                    <Route path="/products/own"
+                           element={<ListMyProductsComponent openCustomNotification={openCustomNotification}/>}></Route>
                 </Routes>
             </div>
         </Content>
