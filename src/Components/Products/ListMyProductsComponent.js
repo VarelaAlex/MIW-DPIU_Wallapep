@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {Button, Card, Col, Empty, Input, Row, Statistic, Table, Tooltip, Typography} from 'antd';
+import {Button, Card, Col, Empty, Input, Row, Space, Statistic, Table, Tooltip, Typography} from 'antd';
 import {Link, useNavigate} from "react-router-dom";
 import {SearchOutlined} from "@ant-design/icons";
 
@@ -52,6 +52,28 @@ let ListMyProductsComponent = () => {
         setFilteredProducts(products.filter((product) => product.title.toLowerCase().includes(text) || product.description?.toLowerCase().includes(text)));
     };
 
+    let deleteProduct = async (id) => {
+        let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + id, {
+            method: "DELETE", headers: {
+                "apikey": localStorage.getItem("apiKey")
+            },
+        });
+
+        if (response.ok) {
+            let jsonData = await response.json();
+            if (jsonData.deleted) {
+                let productsAfterDelete = products.filter(p => p.id !== id)
+                setProducts(productsAfterDelete)
+            }
+        } else {
+            let responseBody = await response.json();
+            let serverErrors = responseBody.errors;
+            serverErrors.forEach(e => {
+                console.log("Error: " + e.msg)
+            })
+        }
+    }
+
     let columns = [{
         title: "Id", dataIndex: "id", key: "id"
     }, {
@@ -80,7 +102,10 @@ let ListMyProductsComponent = () => {
     }, {
         title: "Buyer", dataIndex: "buyerId", key: "buyerId"
     }, {
-        title: "Actions", dataIndex: "id", render: (id) => <Link to={"/products/edit/" + id}>Edit</Link>, key: "actions"
+        title: "Actions", dataIndex: "id", render: (id) => <Space.Compact direction="vertical">
+            <Link to={"/products/edit/" + id} style={{width: "100%"}}>Edit</Link>
+            <Link to={"#"} onClick={() => deleteProduct(id)}>Delete</Link>
+        </Space.Compact>, key: "actions"
     }]
 
     let {Text} = Typography
@@ -105,17 +130,15 @@ let ListMyProductsComponent = () => {
                     allowClear
                     style={{margin: "2vh 0vh", width: "30vmax"}}
                 />
-            </div> :
-                <Empty
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    styles={{image: {height: 60}}}
-                    description={<Text>Aún no tienes productos a la venta</Text>}
-                >
-                    <Button type="primary" onClick={() => navigate("/products/create")}>Create Now</Button>
-                </Empty>}
+            </div> : <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                styles={{image: {height: 60}}}
+                description={<Text>Aún no tienes productos a la venta</Text>}
+            >
+                <Button type="primary" onClick={() => navigate("/products/create")}>Create Now</Button>
+            </Empty>}
             {filteredProducts && filteredProducts.length > 0 ?
-                <Table columns={columns} dataSource={filteredProducts} scroll={{x: "1000px"}}></Table> :
-                <Empty
+                <Table columns={columns} dataSource={filteredProducts} scroll={{x: "1000px"}}></Table> : <Empty
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                     styles={{image: {height: 60}}}
                     description={<Text>No hay productos con estas características</Text>}/>}
