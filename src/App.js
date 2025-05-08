@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import LoginFormComponent from "./Components/User/LoginFormComponent";
 import CreateUserComponent from "./Components/User/CreateUserComponent";
 import ListProductsComponent from "./Components/Products/ListProductsComponent";
-import {Link, Route, Routes, useNavigate} from "react-router-dom";
+import {Link, Route, Routes, useLocation, useNavigate} from "react-router-dom";
 import EditProductComponent from "./Components/Products/EditProductComponent";
 import {Avatar, Col, Image, Layout, Menu, Row, Typography} from 'antd';
 import FooterAppComponent from "./Components/Layout/FooterAppComponent";
@@ -13,10 +13,12 @@ let App = () => {
 
     let navigate = useNavigate()
     let [login, setLogin] = useState(false);
+    let location = useLocation();
 
     let {Header, Content} = Layout;
 
     useEffect(() => {
+
         let checkLoginIsActive = async () => {
             if (localStorage.getItem("apiKey") == null) {
                 setLogin(false);
@@ -36,14 +38,28 @@ let App = () => {
                 if (!jsonData.activeApiKey) {
                     navigate("/login")
                 }
+                return (jsonData.activeApiKey)
             } else {
                 setLogin(false)
+                navigate("/login")
+                return false
+            }
+        }
+
+        let checkUserAccess = async (isActive) => {
+            let href = location.pathname
+            if (!isActive && !login && !["/", "/login", "/register"].includes(href)) {
                 navigate("/login")
             }
         }
 
-        checkLoginIsActive()
-    }, [navigate]);
+        let checkAll = async () => {
+            let isActive = await checkLoginIsActive()
+            checkUserAccess(isActive)
+        }
+
+        checkAll()
+    }, [navigate, location.pathname, login]);
 
     let disconnect = async () => {
         await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/users/disconnect", {
@@ -78,9 +94,9 @@ let App = () => {
                 </Col>
                 <Col xs={6} sm={5} md={4} lg={3} xl={2} style={{display: 'flex', flexDirection: 'row-reverse'}}>
                     {login ? (<Avatar size="large"
-                                              style={{
-                                                  backgroundColor: "#ff0000", verticalAlign: 'middle', marginTop: 12
-                                              }}>
+                                      style={{
+                                          backgroundColor: "#ff0000", verticalAlign: 'middle', marginTop: 12
+                                      }}>
                         {localStorage.getItem("email")?.charAt(0)}
                     </Avatar>) : (<Link to="/login"> <Text style={{color: "#ffffff"}}>Login</Text></Link>)}
                 </Col>
