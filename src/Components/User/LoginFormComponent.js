@@ -3,7 +3,7 @@ import {modifyStateProperty} from "../../Utils/UtilsState";
 import {useNavigate} from "react-router-dom";
 import {Alert, Button, Card, Col, Form, Image, Input, Row} from "antd";
 
-let LoginFormComponent = () => {
+let LoginFormComponent = ({setLogin}) => {
 
     let navigate = useNavigate();
 
@@ -23,6 +23,7 @@ let LoginFormComponent = () => {
                 localStorage.setItem("apiKey", responseBody.apiKey)
                 localStorage.setItem("email", responseBody.email)
             }
+            setLogin(true)
             console.log("ok " + responseBody)
             navigate("/products")
         } else {
