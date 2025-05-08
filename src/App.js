@@ -8,6 +8,7 @@ import {Avatar, Col, Image, Layout, Menu, Row, Typography} from 'antd';
 import FooterAppComponent from "./Components/Layout/FooterAppComponent";
 import DetailsProductComponent from "./Components/Products/DetailsProductComponent";
 import {LoginOutlined} from "@ant-design/icons";
+import CreateProductComponent from "./Components/Products/CreateProductComponent";
 
 let App = () => {
 
@@ -88,6 +89,8 @@ let App = () => {
                     {login && <Menu theme="dark" mode="horizontal" items={[{
                         key: "logo", label: <Image src="/logo.png" width="40px" height="40px"/>
                     }, {key: "menuProducts", label: <Link to="/products">Products</Link>}, {
+                        key: "menuCreateProduct", label: <Link to="/products/create">Sell</Link>
+                    }, {
                         key: "menuDisconnect", label: <Link to="#" onClick={disconnect}>Disconnect</Link>
                     },]}>
                     </Menu>}
@@ -112,6 +115,8 @@ let App = () => {
                     <Route path="/products" element={<ListProductsComponent/>}/>
                     <Route path="/products/edit/:id" element={<EditProductComponent/>}></Route>
                     <Route path="/products/:id" element={<DetailsProductComponent/>}/>
+                    <Route path="/products/create" element={<CreateProductComponent/>}></Route>
+
                 </Routes>
             </div>
         </Content>
