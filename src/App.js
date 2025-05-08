@@ -9,6 +9,7 @@ import FooterAppComponent from "./Components/Layout/FooterAppComponent";
 import DetailsProductComponent from "./Components/Products/DetailsProductComponent";
 import {LoginOutlined} from "@ant-design/icons";
 import CreateProductComponent from "./Components/Products/CreateProductComponent";
+import ListMyProductsComponent from "./Components/Products/ListMyProductsComponent";
 
 let App = () => {
 
@@ -80,15 +81,17 @@ let App = () => {
             <Row>
                 <Col xs={18} sm={19} md={20} lg={21} xl={22}>
                     {!login && <Menu theme="dark" mode="horizontal" items={[{
-                        key: "logo", label: <Image src="/logo.png" width="40px" height="40px"/>
+                        key: "logo", label: <Image src="/logo.png" width="40px" height="40px" preview={false} />
                     }, {key: "menuLogin", icon: <LoginOutlined/>, label: <Link to="/login">Login</Link>}, {
                         key: "menuRegister", label: <Link to="/register">Register</Link>
                     },]}>
                     </Menu>}
 
                     {login && <Menu theme="dark" mode="horizontal" items={[{
-                        key: "logo", label: <Image src="/logo.png" width="40px" height="40px"/>
+                        key: "logo", label: <Image src="/logo.png" width="40px" height="40px" preview={false} />
                     }, {key: "menuProducts", label: <Link to="/products">Products</Link>}, {
+                        key: "menuMyProduct", label: <Link to="/products/own">My Products</Link>
+                    }, {
                         key: "menuCreateProduct", label: <Link to="/products/create">Sell</Link>
                     }, {
                         key: "menuDisconnect", label: <Link to="#" onClick={disconnect}>Disconnect</Link>
@@ -116,7 +119,7 @@ let App = () => {
                     <Route path="/products/edit/:id" element={<EditProductComponent/>}></Route>
                     <Route path="/products/:id" element={<DetailsProductComponent/>}/>
                     <Route path="/products/create" element={<CreateProductComponent/>}></Route>
-
+                    <Route path="/products/own" element={<ListMyProductsComponent/>}></Route>
                 </Routes>
             </div>
         </Content>
