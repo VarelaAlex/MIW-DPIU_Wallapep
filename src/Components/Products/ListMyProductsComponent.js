@@ -74,48 +74,96 @@ let ListMyProductsComponent = () => {
         }
     }
 
-    let columns = [{
-        title: "Id", dataIndex: "id", key: "id", width: 50
+    const [editingKey, setEditingKey] = useState('');
+    const isEditing = (product) => product.key === editingKey;
+
+    const edit = (product) => {
+        setEditingKey(product.key);
+        setEditableFields({
+            title: product.title, description: product.description, price: product.price,
+        });
+    };
+
+    const [editableFields, setEditableFields] = useState({title: '', description: '', price: ''});
+
+    const save = async (key) => {
+        const newData = [...products];
+        const index = newData.findIndex((item) => key === item.key);
+
+        if (index > -1) {
+            const item = newData[index];
+            const updatedItem = {...item, ...editableFields};
+
+            // Optional: send update to backend
+            await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + key, {
+                method: "PUT", headers: {
+                    "Content-Type": "application/json", "apikey": localStorage.getItem("apiKey")
+                }, body: JSON.stringify(updatedItem),
+            });
+
+            newData.splice(index, 1, updatedItem);
+            setProducts(newData);
+            setFilteredProducts(newData);
+            setEditingKey('');
+        }
+    };
+
+    const cancel = () => {
+        setEditingKey('');
+    };
+
+    const columns = [{
+        title: "Id", dataIndex: [], key: "id", width: 50, render: (_, product) => {
+            return <Link to={`/products/edit/${product.id}`}>{product.id}</Link>;
+        }
     }, {
-        title: "Seller Id", dataIndex: "sellerId", key: "sellerId", width: 100
-    }, {
-        title: "Title",
-        dataIndex: "title",
-        key: "title",
-        sorter: (a, b) => a.title.localeCompare(b.title),
-        ellipsis: true,
-        render: (title) => (<Tooltip placement="topLeft" title={title}>
-            {title}
-        </Tooltip>)
+        title: "Title", dataIndex: "title", key: "title", ellipsis: true, render: (_, product) => {
+            const editable = isEditing(product);
+            return editable ? (<Input
+                    value={editableFields.title}
+                    onChange={(e) => setEditableFields({...editableFields, title: e.target.value})}
+                />) : (<Tooltip placement="topLeft" title={product.title}>{product.title}</Tooltip>);
+        }
     }, {
         title: "Description",
         dataIndex: "description",
         key: "description",
         ellipsis: true,
-        render: (description) => (<Tooltip placement="topLeft" title={description}>
-            {description}
-        </Tooltip>)
+        width: 200,
+        render: (_, product) => {
+            const editable = isEditing(product);
+            return editable ? (<Input
+                    value={editableFields.description}
+                    onChange={(e) => setEditableFields({...editableFields, description: e.target.value})}
+                />) : (<Tooltip placement="topLeft" title={product.description}>{product.description}</Tooltip>);
+        }
     }, {
-        title: "Price",
-        dataIndex: [],
-        key: "price",
-        sorter: (a, b) => a.price - b.price,
-        render: (product) => <Text>{product.price} €</Text>,
-        width: 100
+        title: "Price", key: "price", render: (_, product) => {
+            const editable = isEditing(product);
+            return editable ? (<Input
+                    value={editableFields.price}
+                    onChange={(e) => setEditableFields({...editableFields, price: e.target.value})}
+                />) : (<Text>{product.price} €</Text>);
+        }, sorter: (a, b) => a.price - b.price, width: 100
     }, {
-        title: "Date", dataIndex: "date", key: "date",
+        title: "Date", dataIndex: "date", key: "date"
     }, {
         title: "Buyer",
-        dataIndex: [],
-        render: (product) => <Link to={"/user/" + product.buyerId}>{product.buyerEmail}</Link>,
         key: "buyerId",
+        render: (product) => <Link to={"/user/" + product.buyerId}>{product.buyerEmail}</Link>,
         width: 250
     }, {
-        title: "Actions", dataIndex: "id", render: (id) => <Space.Compact direction="vertical">
-            <Link to={"/products/edit/" + id} style={{width: "100%"}}>Edit</Link>
-            <Link to={"#"} onClick={() => deleteProduct(id)}>Delete</Link>
-        </Space.Compact>, key: "actions"
-    }]
+        title: "Actions", key: "actions", render: (_, product) => {
+            const editable = isEditing(product);
+            return editable ? (<Space.Compact direction="vertical">
+                    <Link to="#" onClick={() => save(product.key)}>Save</Link>
+                    <Link to="#" onClick={cancel}>Cancel</Link>
+                </Space.Compact>) : (<Space.Compact direction="vertical">
+                    <Link to="#" onClick={() => deleteProduct(product.id)}>Delete</Link>
+                    <Link to="#" onClick={() => edit(product)}>Edit</Link>
+                </Space.Compact>);
+        }
+    }];
 
     let {Text} = Typography
     return (<Row align="middle" justify="center" style={{paddingTop: "10vh"}}>
