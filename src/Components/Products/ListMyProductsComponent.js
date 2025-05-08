@@ -75,9 +75,9 @@ let ListMyProductsComponent = () => {
     }
 
     let columns = [{
-        title: "Id", dataIndex: "id", key: "id"
+        title: "Id", dataIndex: "id", key: "id", width: 50
     }, {
-        title: "Seller Id", dataIndex: "sellerId", key: "sellerId"
+        title: "Seller Id", dataIndex: "sellerId", key: "sellerId", width: 100
     }, {
         title: "Title",
         dataIndex: "title",
@@ -96,11 +96,20 @@ let ListMyProductsComponent = () => {
             {description}
         </Tooltip>)
     }, {
-        title: "Price (€)", dataIndex: "price", key: "price", sorter: (a, b) => a.price - b.price,
+        title: "Price",
+        dataIndex: [],
+        key: "price",
+        sorter: (a, b) => a.price - b.price,
+        render: (product) => <Text>{product.price} €</Text>,
+        width: 100
     }, {
         title: "Date", dataIndex: "date", key: "date",
     }, {
-        title: "Buyer", dataIndex: "buyerId", key: "buyerId"
+        title: "Buyer",
+        dataIndex: [],
+        render: (product) => <Link to={"/user/" + product.buyerId}>{product.buyerEmail}</Link>,
+        key: "buyerId",
+        width: 250
     }, {
         title: "Actions", dataIndex: "id", render: (id) => <Space.Compact direction="vertical">
             <Link to={"/products/edit/" + id} style={{width: "100%"}}>Edit</Link>
