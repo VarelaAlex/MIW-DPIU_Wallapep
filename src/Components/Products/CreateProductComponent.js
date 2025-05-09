@@ -1,6 +1,6 @@
 import {useState} from "react";
 import {modifyStateProperty} from "../../Utils/UtilsState";
-import {Alert, Button, Card, Col, Form, Input, Row} from "antd";
+import {Alert, Button, Card, Col, Form, Input, Row, Upload} from "antd";
 import {useNavigate} from "react-router-dom";
 
 let CreateProductComponent = ({openCustomNotification}) => {
@@ -16,6 +16,8 @@ let CreateProductComponent = ({openCustomNotification}) => {
         })
 
         if (response.ok) {
+            let data = await response.json()
+            await uploadImage(data.productId)
             openCustomNotification("top", "Producto creado", "success")
             navigate("/products")
         } else {
@@ -25,6 +27,26 @@ let CreateProductComponent = ({openCustomNotification}) => {
                 console.log("Error: " + e.msg)
             })
             setErrors(serverErrors);
+        }
+    }
+
+    let uploadImage = async (productId) => {
+        let formDataImage = new FormData();
+        formDataImage.append('image', formData.image);
+
+        let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + productId + "/image", {
+            method: "POST", headers: {
+                "apikey": localStorage.getItem("apiKey")
+            }, body: formDataImage
+        })
+        if (response.ok) {
+
+        } else {
+            let responseBody = await response.json();
+            let serverErrors = responseBody.errors;
+            serverErrors.forEach(e => {
+                console.log("Error: " + e.msg)
+            })
         }
     }
 
@@ -47,6 +69,12 @@ let CreateProductComponent = ({openCustomNotification}) => {
                     <Input
                         onChange={(i) => modifyStateProperty(formData, setFormData, "price", i.currentTarget.value)}
                         size="large" type="number" placeholder="price"></Input>
+                </Form.Item>
+                <Form.Item name="image">
+                    <Upload action={(file) => modifyStateProperty(formData, setFormData, "image", file)}
+                            listType="picture-card">
+                        Upload
+                    </Upload>
                 </Form.Item>
                 <Button type="primary" block onClick={clickCreateProduct}>Sell Product</Button>
             </Card>
