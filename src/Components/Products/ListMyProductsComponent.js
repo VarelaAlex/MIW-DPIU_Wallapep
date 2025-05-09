@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from "react";
 import {Button, Card, Col, Empty, Input, notification, Row, Space, Statistic, Table, Tooltip, Typography} from 'antd';
 import {Link, useNavigate} from "react-router-dom";
 import {SearchOutlined} from "@ant-design/icons";
+import {timestampToString} from "../../Utils/UtilsDates";
 
 let ListMyProductsComponent = ({openCustomNotification}) => {
     let [products, setProducts] = useState([])
@@ -199,7 +200,7 @@ let ListMyProductsComponent = ({openCustomNotification}) => {
             />) : (<Text>{product.price} €</Text>);
         }, sorter: (a, b) => a.price - b.price, width: 100
     }, {
-        title: "Date", dataIndex: "date", key: "date"
+        title: "Date", dataIndex: "date", key: "date", render: (date) => timestampToString(date)
     }, {
         title: "Buyer",
         key: "buyerId",

@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from "react";
-import {Alert, Button, Card, Col, Flex, Form, Input, Row} from "antd";
+import {Alert, Button, Card, Col, DatePicker, Flex, Form, Input, Row} from "antd";
 import {modifyStateProperty} from "../../Utils/UtilsState";
 import {useNavigate, useParams} from "react-router-dom";
+import {dateFormatTemplate, timestampToDate} from "../../Utils/UtilsDates";
 
 let EditProductComponent = ({openCustomNotification}) => {
 
@@ -79,6 +80,14 @@ let EditProductComponent = ({openCustomNotification}) => {
                         size="large" type="number" placeholder="price"
                         value={formData?.price}>
                     </Input>
+                </Form.Item>
+                <Form.Item label="">
+                    <DatePicker value={formData.date && timestampToDate(formData.date)}
+                                format={dateFormatTemplate}
+                                onChange={(inDate, inString) => {
+                                    console.log(inString)
+                                }}
+                    />
                 </Form.Item>
                 <Flex gap={8}>
                     <Button onClick={() => navigate("/products/own")} block>Cancel</Button>
