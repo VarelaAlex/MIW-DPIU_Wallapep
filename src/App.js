@@ -123,8 +123,7 @@ let App = () => {
                     <Route path="/" element={<h1>Index</h1>}/>
                     <Route path="/register"
                            element={<CreateUserComponent openCustomNotification={openCustomNotification}/>}/>
-                    <Route path="/login" element={<LoginFormComponent setLogin={setLogin}
-                                                                      openCustomNotification={openCustomNotification}/>}/>
+                    <Route path="/login" element={<LoginFormComponent setLogin={setLogin}/>}/>
                     <Route path="/products" element={<ListProductsComponent/>}/>
                     <Route path="/products/edit/:id"
                            element={<EditProductComponent openCustomNotification={openCustomNotification}/>}></Route>

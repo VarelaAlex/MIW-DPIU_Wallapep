@@ -1,22 +1,17 @@
 import {useState} from "react";
 import {modifyStateProperty} from "../../Utils/UtilsState";
-import {useNavigate} from "react-router-dom";
-import {Button, Card, Col, Form, Image, Input, Row, Typography} from "antd";
-import {
-    allowSubmitForm,
-    joinAllServerErrorMessages,
-    setServerErrors,
-    validateFormDataInputEmail,
-    validateFormDataInputRequired
-} from "../../Utils/UtilsValidations";
+import {Link, useNavigate} from "react-router-dom";
+import {Alert, Card, Col, Form, Image, Input, Row, Typography} from "antd";
+import DisabledButtonComponent from "../Buttons/DisabledButtonComponent";
 
-let LoginFormComponent = ({setLogin, openCustomNotification}) => {
+let LoginFormComponent = ({setLogin}) => {
 
+    const [form] = Form.useForm();
     let navigate = useNavigate();
-
-    let [formData, setFormData] = useState({})
-    let [formErrors, setFormErrors] = useState({})
-    let requiredInForm = ["email", "password"]
+    let [formData, setFormData] = useState({
+        email: '', password: '',
+    })
+    let [errors, setErrors] = useState([]);
 
     let clickLogin = async () => {
         let response = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/users/login`, {
@@ -35,9 +30,10 @@ let LoginFormComponent = ({setLogin, openCustomNotification}) => {
         } else {
             let responseBody = await response.json();
             let serverErrors = responseBody.errors;
-            setServerErrors(serverErrors, setFormErrors)
-            let notificationMsg = joinAllServerErrorMessages(serverErrors)
-            openCustomNotification("top", notificationMsg, "error")
+            serverErrors.forEach(e => {
+                console.log("Error: " + e.msg);
+            })
+            setErrors(serverErrors);
         }
     }
 
@@ -47,34 +43,40 @@ let LoginFormComponent = ({setLogin, openCustomNotification}) => {
         </Col>
         <Col xs={24} sm={24} md={12} lg={12} xl={10}>
             <Card title="Login" style={{width: "100%", margin: "15px"}}>
-                <Form>
-                    <Form.Item label=""
-                               validateStatus={validateFormDataInputEmail(formData, "email", formErrors, setFormErrors) ? "success" : "error"}
+                {errors && errors.map((e) => <Alert style={{marginBottom: "2vh"}} type="error"
+                                                    message={e.msg}/>)}
+                <Form
+                    form={form}
+                    name="login"
+                    initialValues={{remember: true}}
+                    onFinish={clickLogin}
+                    autoComplete="off"
+                >
+                    <Form.Item
+                        label=""
+                        name="email"
+                        rules={[{required: true, message: "Please enter your email address"}, {
+                            type: "email", message: "Please enter a valid email address"
+                        },]}
                     >
-                        <Input placeholder="your email"
-                               onChange={(i) => {
-                                   modifyStateProperty(formData, setFormData, "email", i.currentTarget.value)
-                               }}/>
-                        {formErrors?.email?.msg &&
-                            <Typography.Text type="danger"> {formErrors?.email?.msg} </Typography.Text>}
+                        <Input placeholder="Your email" onChange={(i) => {
+                            modifyStateProperty(formData, setFormData, "email", i.currentTarget.value)
+                        }}/>
                     </Form.Item>
-                    <Form.Item label=""
-                               validateStatus={validateFormDataInputRequired(formData, "password", formErrors, setFormErrors) ? "success" : "error"}
+                    <Form.Item
+                        label=""
+                        name="password"
+                        rules={[{required: true, message: "Please enter your password"}]}
                     >
-                        <Input.Password
-                            placeholder="your password"
-                            onChange={(i) => {
-                                modifyStateProperty(formData, setFormData, "password", i.currentTarget.value)
-                            }}/>
-                        {formErrors?.password?.msg &&
-                            <Typography.Text type="danger"> {formErrors?.password?.msg} </Typography.Text>}
+                        <Input.Password placeholder="Your password" onChange={(i) => {
+                            modifyStateProperty(formData, setFormData, "password", i.currentTarget.value)
+                        }}/>
                     </Form.Item>
                     <Form.Item>
-                        {allowSubmitForm(formData, formErrors, requiredInForm) ?
-                            <Button type="primary" onClick={clickLogin} block>Login</Button> :
-                            <Button type="primary" block disabled>Login</Button>}
+                        <DisabledButtonComponent form={form} submit>Login user</DisabledButtonComponent>
                     </Form.Item>
                 </Form>
+                <Card.Meta description={<Typography.Text>Don't have an account yet? <Link to="/register">Sign up here</Link></Typography.Text>}></Card.Meta>
             </Card>
         </Col>
     </Row>)
