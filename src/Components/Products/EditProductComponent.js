@@ -1,98 +1,126 @@
-import React, {useEffect, useState} from "react";
-import {Alert, Button, Card, Col, DatePicker, Flex, Form, Input, Row} from "antd";
+import {useEffect, useState} from "react";
 import {modifyStateProperty} from "../../Utils/UtilsState";
+import {Alert, Card, Col, Form, Input, InputNumber, Row, Select, Upload} from "antd";
 import {useNavigate, useParams} from "react-router-dom";
-import {dateFormatTemplate, timestampToDate} from "../../Utils/UtilsDates";
+import DisabledButtonComponent from "../Buttons/DisabledButtonComponent";
+import {categories} from "../../categories";
+import {InboxOutlined} from "@ant-design/icons";
 
 let EditProductComponent = ({openCustomNotification}) => {
-
-    let {id} = useParams();
     let [formData, setFormData] = useState({})
-    let [errors, setErrors] = useState(false);
     let navigate = useNavigate();
+    let [errors, setErrors] = useState(false);
+    let [form] = Form.useForm();
+    let {id} = useParams();
 
     useEffect(() => {
-        let getProduct = async () => {
-            let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + id, {
-                method: "GET", headers: {
-                    "apikey": localStorage.getItem("apiKey")
-                },
-            });
+        fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + id, {
+            headers: {"apikey": localStorage.getItem("apiKey")}
+        }).then(res => res.json()).then(data => {
+            const imageUrl = `${process.env.REACT_APP_BACKEND_BASE_URL}/images/${data.id}.png`;
 
-            if (response.ok) {
-                let jsonData = await response.json();
-                setFormData(jsonData)
-            } else {
-                let responseBody = await response.json();
-                let serverErrors = responseBody.errors;
-                serverErrors.forEach(e => {
-                    console.log("Error: " + e.msg)
-                })
-            }
-        }
+            const fileList = [{
+                uid: '-1',
+                name: 'imagen.png',
+                status: 'done',
+                url: imageUrl
+            }];
 
-        getProduct();
-    }, [id])
+            form.setFieldsValue({ ...data, image: fileList });
+            setFormData({ ...data, image: fileList[0] });
+        });
+    }, [id, form]);
 
     let clickEditProduct = async () => {
         let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + id, {
             method: "PUT", headers: {
-                "Content-Type": "application/json ", "apikey": localStorage.getItem("apiKey")
+                "Content-Type": "application/json", "apikey": localStorage.getItem("apiKey")
             }, body: JSON.stringify(formData)
         });
 
         if (response.ok) {
-            await response.json();
-            openCustomNotification("top", "Se ha editado el producto", "success");
+            if (formData.image instanceof File) await uploadImage(id);
+            openCustomNotification("top", "Producto actualizado", "success");
             navigate("/products/own");
         } else {
             let responseBody = await response.json();
             let serverErrors = responseBody.errors;
-            serverErrors.forEach(e => {
-                console.log("Error: " + e.msg)
-            })
+            serverErrors.forEach(e => console.log("Error: " + e.msg));
             setErrors(serverErrors);
         }
     }
 
+    let uploadImage = async (productId) => {
+        let formDataImage = new FormData();
+        formDataImage.append('image', formData.image);
+
+        let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + productId + "/image", {
+            method: "POST", headers: {
+                "apikey": localStorage.getItem("apiKey")
+            }, body: formDataImage
+        });
+
+        if (!response.ok) {
+            let responseBody = await response.json();
+            let serverErrors = responseBody.errors;
+            serverErrors.forEach(e => console.log("Error: " + e.msg));
+        }
+    }
+
+    const normImage = (e) => Array.isArray(e) ? e : e && e.fileList;
+
+    let {Option} = Select;
     return (<Row align="middle" justify="center" style={{minHeight: "70vh"}}>
-        <Col>
-            <Card title="Edit product" style={{width: "500px"}}>
-                {errors && errors.map((e, idx) => (
-                    <Alert key={idx} style={{marginBottom: "2vh"}} type="error" message={e.msg}/>))}
-                <Form.Item label="">
-                    <Input
-                        onChange={(i) => modifyStateProperty(formData, setFormData, "title", i.currentTarget.value)}
-                        size="large" type="text" placeholder="product title"
-                        value={formData?.title}>
-                    </Input>
-                </Form.Item>
-                <Form.Item label="">
-                    <Input
-                        onChange={(i) => modifyStateProperty(formData, setFormData, "description", i.currentTarget.value)}
-                        size="large" type="text" placeholder="description"
-                        value={formData?.description}>
-                    </Input>
-                </Form.Item>
-                <Form.Item label="">
-                    <Input
-                        onChange={(i) => modifyStateProperty(formData, setFormData, "price", i.currentTarget.value)}
-                        size="large" type="number" placeholder="price"
-                        value={formData?.price}>
-                    </Input>
-                </Form.Item>
-                <Form.Item label="">
-                    <DatePicker value={formData.date && timestampToDate(formData.date)}
-                                format={dateFormatTemplate}
-                                onChange={(inDate, inString) => {
-                                    console.log(inString)
-                                }}
-                    />
-                </Form.Item>
-                <Flex gap={8}>
-                    <Button onClick={() => navigate("/products/own")} block>Cancel</Button>
-                    <Button type="primary" onClick={clickEditProduct} block>Edit Product</Button>
-                </Flex>
+        <Col sm={12}>
+            <Card title="Edit product">
+                {errors && errors.map((e) => <Alert style={{marginBottom: "2vh"}} type="error" message={e.msg}/>)}
+                <Form form={form} layout="vertical">
+                    <Form.Item name="title" rules={[{required: true, message: "El título es obligatorio"}]}>
+                        <Input
+                            onChange={(i) => modifyStateProperty(formData, setFormData, "title", i.currentTarget.value)}
+                            size="large" type="text" placeholder="Product title"/>
+                    </Form.Item>
+                    <Form.Item name="description" rules={[{required: true, message: "La descripción es obligatoria"}]}>
+                        <Input
+                            onChange={(i) => modifyStateProperty(formData, setFormData, "description", i.currentTarget.value)}
+                            size="large" type="text" placeholder="Description"/>
+                    </Form.Item>
+                    <Form.Item name="price" rules={[{required: true, message: "El precio es obligatorio"}]}>
+                        <InputNumber
+                            decimalSeparator="."
+                            step="0.1"
+                            precision={2}
+                            min={0}
+                            keyboard
+                            onChange={(i) => modifyStateProperty(formData, setFormData, "price", i)}
+                            placeholder="Price"
+                            style={{width: "100%"}}
+                            size="large"
+                            suffix="€"
+                        />
+                    </Form.Item>
+                    <Form.Item name="category" rules={[{required: true, message: "La categoría es obligatoria"}]}>
+                        <Select placeholder="Select category" size="large"
+                                onChange={(e) => modifyStateProperty(formData, setFormData, "category", e)}>
+                            {categories.map((cat) => (<Option key={cat} value={cat}>{cat}</Option>))}
+                        </Select>
+                    </Form.Item>
+                    <Form.Item name="image" valuePropName="fileList" getValueFromEvent={normImage}
+                               rules={[{required: false}]}>
+                        <Upload.Dragger beforeUpload={(file) => {
+                            modifyStateProperty(formData, setFormData, "image", file);
+                            return false;
+                        }} listType="picture"
+                                        onRemove={() => modifyStateProperty(formData, setFormData, "image", undefined)}
+                                        maxCount={1}>
+                            <p className="ant-upload-drag-icon"><InboxOutlined/></p>
+                            <p className="ant-upload-text">Click or drag an image to this area to upload</p>
+                        </Upload.Dragger>
+                    </Form.Item>
+                    <Form.Item>
+                        <DisabledButtonComponent form={form} onClick={clickEditProduct}>Update Product</DisabledButtonComponent>
+                    </Form.Item>
+                </Form>
             </Card>
         </Col>
     </Row>)

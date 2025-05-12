@@ -1,13 +1,15 @@
-import {useEffect, useState} from "react";
-import {useParams} from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {Link, useParams} from "react-router-dom";
 import {Button, Card, Col, Descriptions, Image, Row, Typography} from 'antd';
 import {ShoppingOutlined} from '@ant-design/icons';
+import {getUser} from "../../Utils/UtilsBackendCalls";
 
 let DetailsProductComponent = ({openCustomNotification}) => {
     let [product, setProduct] = useState({})
     const {id} = useParams();
 
     useEffect(() => {
+
         let getProduct = async () => {
             let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + id, {
                 method: "GET", headers: {
@@ -17,6 +19,7 @@ let DetailsProductComponent = ({openCustomNotification}) => {
 
             if (response.ok) {
                 let jsonData = await response.json();
+                jsonData.sellerEmail = (await getUser(jsonData.sellerId)).email;
                 setProduct(jsonData)
             } else {
                 let responseBody = await response.json();
@@ -53,28 +56,43 @@ let DetailsProductComponent = ({openCustomNotification}) => {
         }
     }
 
-    const {Text} = Typography;
+    const {Text, Paragraph} = Typography;
     return (<Row align="middle" justify="center">
-        <Col xs={24} sm={12} md={12}>
-            <Card>
-                <Image src="/item1.png" preview={false}/>
+        <Col xs={24} sm={16} md={12}>
+            <Card cover={<Image
+                src={`${process.env.REACT_APP_BACKEND_BASE_URL}/images/${product.id}.png`}
+                alt={product.title}
+                preview={false}
+                style={{objectFit: "contain", height: 300}}
+            />}>
                 <Descriptions title={product.title} column={1} layout="vertical">
-                    <Descriptions.Item label="Id">
-                        {product.id}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Description">
-                        {product.description}
+                    <Descriptions.Item>
+                        <Paragraph ellipsis={{rows: 2, expandable: true, symbol: 'more'}}>
+                            {product.description}
+                        </Paragraph>
                     </Descriptions.Item>
                     <Descriptions.Item>
-                        <Text strong underline style={{fontSize: 20}}>{product.price}</Text>
+                        <Link to={`/users/${product.sellerId}`}>{product.sellerEmail}</Link>
                     </Descriptions.Item>
                     <Descriptions.Item>
-                        <Button type="primary" onClick={buyProduct}
-                                icon={<ShoppingOutlined/>} size="large">
-                            Comprar
+                        <Text strong style={{fontSize: 20}}>
+                            {product.price?.toLocaleString("es-ES", {
+                                style: "currency", currency: "EUR"
+                            })}
+                        </Text>
+                    </Descriptions.Item>
+                    <Descriptions.Item>
+                        <Button
+                            type="primary"
+                            onClick={buyProduct}
+                            icon={<ShoppingOutlined/>}
+                            size="large"
+                            block
+                            disabled={!product}
+                        >
+                            Buy
                         </Button>
                     </Descriptions.Item>
-
                 </Descriptions>
             </Card>
         </Col>
