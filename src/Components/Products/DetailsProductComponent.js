@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {Link, useParams} from "react-router-dom";
 import {Button, Card, Col, Descriptions, Image, Row, Typography} from 'antd';
 import {ShoppingOutlined} from '@ant-design/icons';
-import {getUser} from "../../Utils/UtilsBackendCalls";
+import {getProductById} from "../../Utils/UtilsBackendCalls";
 
 let DetailsProductComponent = ({openCustomNotification}) => {
     let [product, setProduct] = useState({})
@@ -11,23 +11,8 @@ let DetailsProductComponent = ({openCustomNotification}) => {
     useEffect(() => {
 
         let getProduct = async () => {
-            let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + id, {
-                method: "GET", headers: {
-                    "apikey": localStorage.getItem("apiKey")
-                },
-            });
-
-            if (response.ok) {
-                let jsonData = await response.json();
-                jsonData.sellerEmail = (await getUser(jsonData.sellerId)).email;
-                setProduct(jsonData)
-            } else {
-                let responseBody = await response.json();
-                let serverErrors = responseBody.errors;
-                serverErrors.forEach(e => {
-                    console.log("Error: " + e.msg)
-                })
-            }
+            let product = await getProductById(id);
+            setProduct(product)
         }
 
         getProduct();
@@ -60,7 +45,7 @@ let DetailsProductComponent = ({openCustomNotification}) => {
     return (<Row align="middle" justify="center">
         <Col xs={24} sm={16} md={12}>
             <Card cover={<Image
-                src={`${process.env.REACT_APP_BACKEND_BASE_URL}/images/${product.id}.png`}
+                src={product.image}
                 alt={product.title}
                 preview={false}
                 style={{objectFit: "contain", height: 300}}

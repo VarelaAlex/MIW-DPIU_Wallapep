@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
 import {Card, Checkbox, Col, Empty, Grid, Image, Input, Radio, Row, Select, Space, Tag, Typography} from 'antd';
-import {checkURL} from "../../Utils/UtilsChecks";
 import {categories, categoryColors} from "../../categories";
 import {FilterOutlined} from "@ant-design/icons";
+import {getProductsWithImage} from "../../Utils/UtilsBackendCalls";
 
 let ListProductsComponent = () => {
     let [products, setProducts] = useState([]);
@@ -16,28 +16,9 @@ let ListProductsComponent = () => {
 
     useEffect(() => {
         let getProducts = async () => {
-            let response = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/products`, {
-                method: "GET", headers: {
-                    "apikey": localStorage.getItem("apiKey")
-                },
-            });
-
-            if (response.ok) {
-                let jsonData = await response.json();
-                let productsWithImage = await Promise.all(jsonData.map(async p => {
-                    let urlImage = `${process.env.REACT_APP_BACKEND_BASE_URL}/images/${p.id}.png`;
-                    let existsImage = await checkURL(urlImage);
-                    p.image = existsImage ? urlImage : "/imageMockup.png";
-                    return p;
-                }));
-                setProducts(productsWithImage);
-            } else {
-                let responseBody = await response.json();
-                responseBody.errors.forEach(e => {
-                    console.log("Error: " + e.msg);
-                });
-            }
-        };
+            let products = await getProductsWithImage();
+            setProducts(products);
+        }
 
         getProducts();
     }, []);

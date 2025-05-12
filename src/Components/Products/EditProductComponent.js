@@ -5,6 +5,7 @@ import {useNavigate, useParams} from "react-router-dom";
 import DisabledButtonComponent from "../Buttons/DisabledButtonComponent";
 import {categories} from "../../categories";
 import {InboxOutlined} from "@ant-design/icons";
+import {editProduct, getProductById} from "../../Utils/UtilsBackendCalls";
 
 let EditProductComponent = ({openCustomNotification}) => {
     let [formData, setFormData] = useState({})
@@ -14,56 +15,32 @@ let EditProductComponent = ({openCustomNotification}) => {
     let {id} = useParams();
 
     useEffect(() => {
-        fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + id, {
-            headers: {"apikey": localStorage.getItem("apiKey")}
-        }).then(res => res.json()).then(data => {
-            const imageUrl = `${process.env.REACT_APP_BACKEND_BASE_URL}/images/${data.id}.png`;
-
+        let getProduct = async () => {
+            let product = await getProductById(id);
             const fileList = [{
                 uid: '-1',
                 name: 'imagen.png',
                 status: 'done',
-                url: imageUrl
+                url: product.image
             }];
 
-            form.setFieldsValue({ ...data, image: fileList });
-            setFormData({ ...data, image: fileList[0] });
-        });
+            form.setFieldsValue({ ...product, image: fileList });
+            setFormData({ ...product, image: fileList[0] });
+        }
+
+        getProduct();
     }, [id, form]);
 
     let clickEditProduct = async () => {
-        let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + id, {
-            method: "PUT", headers: {
-                "Content-Type": "application/json", "apikey": localStorage.getItem("apiKey")
-            }, body: JSON.stringify(formData)
-        });
+        let response = await editProduct(id, formData);
 
         if (response.ok) {
-            if (formData.image instanceof File) await uploadImage(id);
             openCustomNotification("top", "Producto actualizado", "success");
             navigate("/products/own");
         } else {
-            let responseBody = await response.json();
-            let serverErrors = responseBody.errors;
+            let serverErrors = response.errors;
             serverErrors.forEach(e => console.log("Error: " + e.msg));
             setErrors(serverErrors);
-        }
-    }
-
-    let uploadImage = async (productId) => {
-        let formDataImage = new FormData();
-        formDataImage.append('image', formData.image);
-
-        let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + productId + "/image", {
-            method: "POST", headers: {
-                "apikey": localStorage.getItem("apiKey")
-            }, body: formDataImage
-        });
-
-        if (!response.ok) {
-            let responseBody = await response.json();
-            let serverErrors = responseBody.errors;
-            serverErrors.forEach(e => console.log("Error: " + e.msg));
         }
     }
 

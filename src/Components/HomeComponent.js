@@ -1,37 +1,19 @@
 import {Card, Col, Collapse, Image, Row, Typography} from "antd";
 import React, {useEffect, useState} from "react";
 import {categories} from "../categories";
-import {checkURL} from "../Utils/UtilsChecks";
 import {useNavigate} from "react-router-dom";
+import {getProductsWithImage} from "../Utils/UtilsBackendCalls";
 
 let HomeComponent = () => {
     let [products, setProducts] = useState([]);
     let navigate = useNavigate();
 
     useEffect(() => {
-        let getProducts = async () => {
-            let response = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/products`, {
-                method: "GET", headers: {
-                    "apikey": localStorage.getItem("apiKey")
-                },
-            });
 
-            if (response.ok) {
-                let jsonData = await response.json();
-                let productsWithImage = await Promise.all(jsonData.map(async (p) => {
-                    let urlImage = `${process.env.REACT_APP_BACKEND_BASE_URL}/images/${p.id}.png`;
-                    let existsImage = await checkURL(urlImage);
-                    p.image = existsImage ? urlImage : "/imageMockup.png";
-                    return p;
-                }));
-                setProducts(productsWithImage);
-            } else {
-                let responseBody = await response.json();
-                responseBody.errors.forEach(e => {
-                    console.log("Error: " + e.msg);
-                });
-            }
-        };
+        let getProducts = async () => {
+            let products = await getProductsWithImage();
+            setProducts(products);
+        }
 
         getProducts();
     }, []);

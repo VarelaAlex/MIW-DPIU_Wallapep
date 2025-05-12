@@ -21,6 +21,7 @@ import {Link, useNavigate} from "react-router-dom";
 import {DeleteOutlined, SearchOutlined} from "@ant-design/icons";
 import {timestampToString} from "../../Utils/UtilsDates";
 import {categories, categoryColors} from "../../categories";
+import {editProduct} from "../../Utils/UtilsBackendCalls";
 
 let ListMyProductsComponent = ({openCustomNotification}) => {
 
@@ -115,11 +116,7 @@ let ListMyProductsComponent = ({openCustomNotification}) => {
             let item = newData[index];
             let updatedItem = {...item, ...editableFields};
 
-            let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + key, {
-                method: "PUT", headers: {
-                    "Content-Type": "application/json", "apikey": localStorage.getItem("apiKey")
-                }, body: JSON.stringify(updatedItem),
-            });
+            let response = await editProduct(key, updatedItem);
 
             if (response.ok) {
                 newData.splice(index, 1, updatedItem);
@@ -128,8 +125,7 @@ let ListMyProductsComponent = ({openCustomNotification}) => {
                 setEditingProduct("");
                 openCustomNotification("top", "Producto actualizado", "success")
             } else {
-                let responseBody = await response.json();
-                let serverErrors = responseBody.errors;
+                let serverErrors = response.errors;
                 serverErrors.forEach(e => {
                     console.log("Error: " + e.msg)
                 })

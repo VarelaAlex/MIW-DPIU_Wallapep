@@ -4,15 +4,15 @@ import CreateUserComponent from "./Components/User/CreateUserComponent";
 import ListProductsComponent from "./Components/Products/ListProductsComponent";
 import {Link, Route, Routes, useLocation, useNavigate} from "react-router-dom";
 import EditProductComponent from "./Components/Products/EditProductComponent";
-import {Avatar, Col, Image, Layout, Menu, notification, Row, Typography} from 'antd';
+import {Avatar, Col, Layout, notification, Row, Typography} from 'antd';
 import FooterAppComponent from "./Components/Layout/FooterAppComponent";
 import DetailsProductComponent from "./Components/Products/DetailsProductComponent";
-import {LoginOutlined, UserAddOutlined} from "@ant-design/icons";
 import CreateProductComponent from "./Components/Products/CreateProductComponent";
 import ListMyProductsComponent from "./Components/Products/ListMyProductsComponent";
 import HomeComponent from "./Components/HomeComponent";
 import ListMyTransactionsComponent from "./Components/Transactions/ListMyTransactionsComponent";
 import UserProfileComponent from "./Components/User/UserProfileComponent";
+import MenuAppComponent from "./Components/Layout/MenuAppComponent";
 
 let App = () => {
 
@@ -67,18 +67,6 @@ let App = () => {
         checkAll()
     }, [navigate, location.pathname, login]);
 
-    let disconnect = async () => {
-        await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/users/disconnect", {
-            method: "GET", headers: {
-                "apikey": localStorage.getItem("apiKey")
-            }
-        });
-
-        localStorage.removeItem("apiKey");
-        setLogin(false)
-        navigate("/login")
-    }
-
     const openCustomNotification = (placement, text, type) => {
         api[type]({
             message: 'Notification', description: text, placement,
@@ -91,27 +79,7 @@ let App = () => {
         <Header>
             <Row>
                 <Col xs={18} sm={19} md={20} lg={21} xl={22}>
-                    {!login && <Menu theme="dark" mode="horizontal" items={[{
-                        key: "logo", label: <Image src="/logo.png" width="40px" height="40px" preview={false}
-                                                   onClick={() => navigate("/")}/>
-                    }, {key: "menuLogin", icon: <LoginOutlined/>, label: <Link to="/login">Login</Link>}, {
-                        key: "menuRegister", icon: <UserAddOutlined/>, label: <Link to="/register">Register</Link>
-                    },]}>
-                    </Menu>}
-
-                    {login && <Menu theme="dark" mode="horizontal" items={[{
-                        key: "logo", label: <Image src="/logo.png" width="40px" height="40px" preview={false}
-                                                   onClick={() => navigate("/")}/>
-                    }, {key: "menuProducts", label: <Link to="/products">Products</Link>}, {
-                        key: "menuMyProduct", label: <Link to="/products/own">My Products</Link>
-                    }, {
-                        key: "menuTransactions", label: <Link to="/transactions/own">My Transactions</Link>
-                    }, {
-                        key: "menuCreateProduct", label: <Link to="/products/create">Sell</Link>
-                    }, {
-                        key: "menuDisconnect", label: <Link to="#" onClick={disconnect}>Disconnect</Link>
-                    },]}>
-                    </Menu>}
+                    <MenuAppComponent login={login} setLogin={setLogin} />
                 </Col>
                 <Col xs={6} sm={5} md={4} lg={3} xl={2} style={{display: 'flex', flexDirection: 'row-reverse'}}>
                     {login ? (<Avatar size="large"

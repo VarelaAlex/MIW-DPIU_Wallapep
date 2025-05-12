@@ -5,6 +5,7 @@ import {useNavigate} from "react-router-dom";
 import DisabledButtonComponent from "../Buttons/DisabledButtonComponent";
 import {categories} from "../../categories";
 import {InboxOutlined} from "@ant-design/icons";
+import {uploadImage} from "../../Utils/UtilsBackendCalls";
 
 let CreateProductComponent = ({openCustomNotification}) => {
     let [formData, setFormData] = useState({})
@@ -21,7 +22,7 @@ let CreateProductComponent = ({openCustomNotification}) => {
 
         if (response.ok) {
             let data = await response.json()
-            await uploadImage(data.productId)
+            await uploadImage(data.productId, formData.image)
             openCustomNotification("top", "Producto creado", "success")
             navigate("/products/own")
         } else {
@@ -31,26 +32,6 @@ let CreateProductComponent = ({openCustomNotification}) => {
                 console.log("Error: " + e.msg)
             })
             setErrors(serverErrors);
-        }
-    }
-
-    let uploadImage = async (productId) => {
-        let formDataImage = new FormData();
-        formDataImage.append('image', formData.image);
-
-        let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + productId + "/image", {
-            method: "POST", headers: {
-                "apikey": localStorage.getItem("apiKey")
-            }, body: formDataImage
-        })
-        if (response.ok) {
-
-        } else {
-            let responseBody = await response.json();
-            let serverErrors = responseBody.errors;
-            serverErrors.forEach(e => {
-                console.log("Error: " + e.msg)
-            })
         }
     }
 
