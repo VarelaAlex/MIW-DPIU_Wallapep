@@ -8,7 +8,7 @@ import {Avatar, Col, Layout, notification, Row, Typography} from 'antd';
 import FooterAppComponent from "./Components/Layout/FooterAppComponent";
 import DetailsProductComponent from "./Components/Products/DetailsProductComponent";
 import CreateProductComponent from "./Components/Products/CreateProductComponent";
-import ListMyProductsComponent from "./Components/Products/ListMyProductsComponent";
+import ListMyProductsComponent from "./Components/Products/MyProducts/ListMyProductsComponent";
 import HomeComponent from "./Components/HomeComponent";
 import ListMyTransactionsComponent from "./Components/Transactions/ListMyTransactionsComponent";
 import UserProfileComponent from "./Components/User/UserProfileComponent";

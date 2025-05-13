@@ -1,9 +1,11 @@
 import React, {useEffect, useState} from "react";
-import {Link} from "react-router-dom";
-import {Card, Checkbox, Col, Empty, Grid, Image, Input, Radio, Row, Select, Space, Tag, Typography} from 'antd';
-import {categories, categoryColors} from "../../categories";
-import {FilterOutlined} from "@ant-design/icons";
+import {useNavigate} from "react-router-dom";
+import {Card, Checkbox, Col, Empty, Grid, Image, Radio, Row, Space, Typography} from 'antd';
+import {categories} from "../../categories";
 import {getProductsWithImage} from "../../Utils/UtilsBackendCalls";
+import ProductSearchBarComponent from "./ProductSearchBarComponent";
+import CategorySelectComponent from "./CategorySelectComponent";
+import {FilterOutlined} from "@ant-design/icons";
 
 let ListProductsComponent = () => {
     let [products, setProducts] = useState([]);
@@ -11,12 +13,22 @@ let ListProductsComponent = () => {
     let [searchTerm, setSearchTerm] = useState("");
     let [selectedCategories, setSelectedCategories] = useState([]);
     let [sortOrder, setSortOrder] = useState(null);
+    let navigate = useNavigate();
     let {useBreakpoint} = Grid;
     let screens = useBreakpoint();
 
     useEffect(() => {
         let getProducts = async () => {
             let products = await getProductsWithImage();
+            products.sort((a, b) => {
+                let aEmail = a.buyerEmail;
+                let bEmail = b.buyerEmail;
+
+                if (!aEmail && bEmail) return -1;
+                if (aEmail && !bEmail) return 1;
+                if (aEmail && bEmail) return aEmail.localeCompare(bEmail);
+                return 0;
+            })
             setProducts(products);
         }
 
@@ -35,6 +47,8 @@ let ListProductsComponent = () => {
                 filtered.sort((a, b) => a.price - b.price);
             } else if (sortOrder === "desc") {
                 filtered.sort((a, b) => b.price - a.price);
+            } else {
+                filtered.sort((a, b) => a.title - b.title);
             }
 
             setFilteredProducts(filtered);
@@ -43,47 +57,42 @@ let ListProductsComponent = () => {
         applyFilters();
     }, [products, searchTerm, selectedCategories, sortOrder]);
 
+    let disableImageStyle = {
+        opacity: 0.25,
+    }
+
     let {Text, Title} = Typography;
-    let {Search} = Input;
-    return (<Space direction="vertical" style={{width: "100%"}} >
+    return (<Space direction="vertical" style={{width: "100%"}}>
         <Title>Products</Title>
 
-        <Row gutter={8} justify="end" >
-            <Col xs={24} md={20}>
-                <Search
-                    placeholder="Buscar por título o descripción"
-                    allowClear
-                    onChange={e => setSearchTerm(e.target.value)}
-                    enterButton
-                />
-            </Col>
+        <Row gutter={8} justify="end">
+            <ProductSearchBarComponent onChange={e => setSearchTerm(e.target.value.toLowerCase())}
+                                       screenProps={{xs: 24, md: 20}} cell={!screens.md &&
+                <CategorySelectComponent onChange={(values) => setSelectedCategories(values)}
+                                         placeholder={<FilterOutlined/>} mode="multiple" showSearch={false}
+                                         popupMatchSelectWidth={false} minWidth={65}/>}/>
         </Row>
 
-        <Row justify="space-between">
-            <Col>{!screens.md &&
-                <Select
-                    options={categories.map(cat => ({
-                        value: cat, label: <Tag color={categoryColors[cat?.toLowerCase()] || 'default'}>{cat}</Tag>
-                    }))}
-                    mode="multiple"
-                    showSearch={false}
-                    popupMatchSelectWidth={false}
-                    placeholder={<FilterOutlined/>}
-                    value={selectedCategories}
-                    onChange={(values) => setSelectedCategories(values)}
-                    style={{minWidth: 65}}
-                    allowClear
-                />
-           } </Col>
+        <Row justify="end">
             <Col>
                 <Radio.Group value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
                     <Radio.Button
                         value="asc"
+                        onClick={() => {
+                            if (sortOrder === "asc") {
+                                setSortOrder(null);
+                            }
+                        }}
                     >
                         Baratos
                     </Radio.Button>
                     <Radio.Button
                         value="desc"
+                        onClick={() => {
+                            if (sortOrder === "desc") {
+                                setSortOrder(null);
+                            }
+                        }}
                     >
                         Precio más alto
                     </Radio.Button>
@@ -92,31 +101,34 @@ let ListProductsComponent = () => {
         </Row>
 
         <Row gutter={[16, 16]}>
-            <Col md={4}> {screens.md &&
-                <Space direction="vertical" style={{width: "100%"}}>
-                    <strong>Categorías</strong>
-                    <Checkbox.Group
-                        options={categories}
-                        value={selectedCategories}
-                        onChange={setSelectedCategories}
-                        style={{display: "flex", flexDirection: "column", marginTop: 8}}
-                    />
-                </Space>
-            }</Col>
+            <Col md={4}> {screens.md && <Space direction="vertical" style={{width: "100%"}}>
+                <strong>Categorías</strong>
+                <Checkbox.Group
+                    options={categories}
+                    value={selectedCategories}
+                    onChange={setSelectedCategories}
+                    style={{display: "flex", flexDirection: "column", marginTop: 8}}
+                />
+            </Space>}</Col>
             <Col md={20}>
                 {filteredProducts.length === 0 ? (<Empty description="No products found" style={{width: '100%'}}/>) : (
                     <Row gutter={[16, 16]}>
                         {filteredProducts.map(p => (<Col xs={12} sm={8} lg={6} key={p.id}>
-                            <Link to={`/products/${p.id}`}>
-                                <Card hoverable title={p.title}
-                                      cover={<Image src={p.image} preview={false}/>}>
-                                    <Text strong style={{fontSize: 15}}>
-                                        {p.price?.toLocaleString("es-ES", {
-                                            style: "currency", currency: "EUR"
-                                        })}
-                                    </Text>
-                                </Card>
-                            </Link>
+                            <Card hoverable={!p.buyerEmail} title={p.title}
+                                  cover={<Image src={p.image} preview={false}
+                                                style={p.buyerEmail ? disableImageStyle : undefined}/>}
+                                  onClick={() => {
+                                      if (!p.buyerEmail) {
+                                          navigate(`/products/${p.id}`)
+                                      }
+                                  }}
+                                  extra={p.buyerEmail && <Text type="secondary">Vendido</Text>}>
+                                <Text strong style={{fontSize: 15}}>
+                                    {p.price?.toLocaleString("es-ES", {
+                                        style: "currency", currency: "EUR"
+                                    })}
+                                </Text>
+                            </Card>
                         </Col>))}
                     </Row>)}
             </Col>

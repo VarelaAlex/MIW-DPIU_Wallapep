@@ -178,9 +178,9 @@ const CreateUserComponent = ({openCustomNotification}) => {
                             value={formData.country}
                             onChange={value => modifyStateProperty(formData, setFormData, "country", value)}
                         >
-                            <Option value="ES">España</Option>
-                            <Option value="FR">Francia</Option>
-                            <Option value="PT">Portugal</Option>
+                            <Option value="Spain">España</Option>
+                            <Option value="France">Francia</Option>
+                            <Option value="Portugal">Portugal</Option>
                         </Select>
                     </Form.Item>
                     <Form.Item

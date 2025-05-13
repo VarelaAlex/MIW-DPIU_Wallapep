@@ -3,6 +3,7 @@ import {Link, useParams} from "react-router-dom";
 import {Button, Card, Col, Descriptions, Image, Row, Typography} from 'antd';
 import {ShoppingOutlined} from '@ant-design/icons';
 import {getProductById} from "../../Utils/UtilsBackendCalls";
+import CategoryTagComponent from "./CategoryTagComponent";
 
 let DetailsProductComponent = ({openCustomNotification}) => {
     let [product, setProduct] = useState({})
@@ -30,7 +31,7 @@ let DetailsProductComponent = ({openCustomNotification}) => {
         if (response.ok) {
             let jsonData = await response.json();
             if (jsonData.affectedRows === 1) {
-                openCustomNotification("top", "Producto comprado", "success")
+                openCustomNotification("top", "Product bought", "success")
             }
         } else {
             let responseBody = await response.json();
@@ -50,7 +51,7 @@ let DetailsProductComponent = ({openCustomNotification}) => {
                 preview={false}
                 style={{objectFit: "contain", height: 300}}
             />}>
-                <Descriptions title={product.title} column={1} layout="vertical">
+                <Descriptions title={product.title} column={1} layout="vertical" extra={<CategoryTagComponent category={product.category}/>}>
                     <Descriptions.Item>
                         <Paragraph ellipsis={{rows: 2, expandable: true, symbol: 'more'}}>
                             {product.description}
@@ -73,7 +74,7 @@ let DetailsProductComponent = ({openCustomNotification}) => {
                             icon={<ShoppingOutlined/>}
                             size="large"
                             block
-                            disabled={!product}
+                            disabled={product.buyerId}
                         >
                             Buy
                         </Button>

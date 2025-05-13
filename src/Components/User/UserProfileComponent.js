@@ -1,33 +1,23 @@
 import React, {useEffect, useState} from 'react';
 import {Link, useParams} from 'react-router-dom';
 import {
-    Button,
-    Card, Col,
-    Descriptions,
-    Divider,
-    Empty,
-    Image,
-    List,
-    Row,
-    Space,
-    Switch,
-    Tag,
-    Tooltip,
-    Typography
+    Button, Card, Col, Descriptions, Divider, Empty, Image, Row, Space, Switch, Tooltip, Typography
 } from 'antd';
-import {getTransactions, getUser} from "../../Utils/UtilsBackendCalls";
+import {getCreditCardNumber, getTransactions, getUser} from "../../Utils/UtilsBackendCalls";
 import {checkURL} from "../../Utils/UtilsChecks";
-import {categoryColors} from "../../categories";
+import CategoryTagComponent from "../Products/CategoryTagComponent";
+import TransactionsListComponent from "../Transactions/TransactionsListComponent";
+import {getCardNumber} from "../../Utils/UtilsFormat";
 
-const {Paragraph, Text, Title} = Typography;
+const {Paragraph, Title} = Typography;
 
 const UserProfileComponent = () => {
     const {id} = useParams();
     const [user, setUser] = useState(null);
     const [transactions, setTransactions] = useState([]);
     const [products, setProducts] = useState([]);
-    const [showAsBuyer, setShowAsBuyer] = useState(false);
     const [visibleProductsCount, setVisibleProductsCount] = useState(5);
+    const [showAsBuyer, setShowAsBuyer] = useState(false);
 
     const handleLoadMore = () => {
         setVisibleProductsCount(prev => prev + 5);
@@ -80,6 +70,7 @@ const UserProfileComponent = () => {
             for (const t of transactions) {
                 t.buyerEmail = (await getUser(t.buyerId)).email
                 t.sellerEmail = (await getUser(t.sellerId)).email
+                t.card = getCardNumber(await getCreditCardNumber(t.buyerPaymentId));
             }
             setTransactions(transactions);
         };
@@ -94,8 +85,8 @@ const UserProfileComponent = () => {
               style={{borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)'}}>
             <Descriptions column={1} bordered size="small">
                 <Descriptions.Item label="Email"><Link to={`/users/${user.id}`}>{user.email}</Link></Descriptions.Item>
-                <Descriptions.Item label="País">{user.country}</Descriptions.Item>
-                <Descriptions.Item label="Dirección">
+                <Descriptions.Item label="Country">{user.country}</Descriptions.Item>
+                <Descriptions.Item label="Address">
                     <Paragraph ellipsis={{rows: 2, expandable: true, symbol: 'more'}}>
                         {user.address && user.address + ","} {user.postalCode && user.postalCode}
                     </Paragraph>
@@ -104,44 +95,19 @@ const UserProfileComponent = () => {
         </Card>
 
         <Divider orientation="left">
-            Transacciones como
+            Transactions as
             <Switch
                 checked={showAsBuyer}
                 onChange={() => setShowAsBuyer(!showAsBuyer)}
                 style={{marginLeft: '1rem'}}
-                checkedChildren="Comprador"
-                unCheckedChildren="Vendedor"
+                checkedChildren="Buyer"
+                unCheckedChildren="Seller"
             />
         </Divider>
 
-        <List
-            dataSource={transactions}
-            grid={{gutter: 24, column: 1}}
-            locale={{emptyText: 'No hay transacciones disponibles'}}
-            renderItem={transaction => (<List.Item>
-                <Card
-                    hoverable
-                    title={<Tooltip title={transaction.title}>{transaction.title}</Tooltip>}
-                >
-                    <Space direction="vertical">
-                        <Paragraph ellipsis={{rows: 2, expandable: true, symbol: 'more'}}>
-                            {transaction.description}
-                        </Paragraph>
-                        <div>
-                            <Text strong>{showAsBuyer ? 'Vendedor' : 'Comprador'}: </Text>
-                            <Link to={`/users/${showAsBuyer ? transaction.sellerId : transaction.buyerId}`}>
-                                {showAsBuyer ? transaction.sellerEmail : transaction.buyerEmail}
-                            </Link>
-                        </div>
-                        <Tag color={categoryColors[transaction.category?.toLowerCase()] || 'default'}>
-                            {transaction.category?.toUpperCase()}
-                        </Tag>
-                    </Space>
-                </Card>
-            </List.Item>)}
-        />
+        <TransactionsListComponent transactions={transactions} showAsBuyer={showAsBuyer} toggleSellerBuyer/>
 
-        <Divider orientation="left">Productos en venta</Divider>
+        <Divider orientation="left">Products for sale</Divider>
         {visibleProducts.length === 0 ? (<Empty description="No products found" style={{width: '100%'}}/>) : (
             <Row gutter={[16, 16]}>
                 {visibleProducts.map(p => (<Col xs={12} sm={8} lg={6} key={p.id}>
@@ -149,26 +115,22 @@ const UserProfileComponent = () => {
                         <Card
                             hoverable
                             title={<Tooltip title={p.title}>{p.title}</Tooltip>}
-                            cover={<Image alt={p.title} src={p.image} preview={false} />}
+                            cover={<Image alt={p.title} src={p.image} preview={false}/>}
                         >
                             <Space direction="vertical">
-                                <Paragraph ellipsis={{ rows: 2, expandable: true, symbol: 'more' }}>
+                                <Paragraph ellipsis={{rows: 2, expandable: true, symbol: 'more'}}>
                                     {p.description}
                                 </Paragraph>
-                                <Tag color={categoryColors[p.category?.toLowerCase()] || 'default'}>
-                                    {p.category?.toUpperCase()}
-                                </Tag>
+                                <CategoryTagComponent category={p.category} letterCase="upper"/>
                             </Space>
                         </Card>
                     </Link>
                 </Col>))}
             </Row>)}
 
-        {visibleProductsCount < products.length && (
-            <div style={{ textAlign: 'center', marginTop: 16 }}>
+        {visibleProductsCount < products.length && (<div style={{textAlign: 'center', marginTop: 16}}>
                 <Button onClick={handleLoadMore}>Load more products</Button>
-            </div>
-        )}
+            </div>)}
     </Space>);
 };
 

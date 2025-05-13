@@ -1,39 +1,21 @@
 import React, {useEffect, useState} from "react";
-import {Card, Col, Empty, Grid, List, Row, Space, Table, Tag, Tooltip, Typography} from "antd";
+import {Col, Empty, Grid, Row, Table, Tooltip, Typography} from "antd";
 import {Link, useNavigate} from "react-router-dom";
 import {timestampToString} from "../../Utils/UtilsDates";
-import {categoryColors} from "../../categories";
 import './striped-table.css'
-import {getUser} from "../../Utils/UtilsBackendCalls";
+import CategoryTagComponent from "../Products/CategoryTagComponent";
+import TransactionsListComponent from "./TransactionsListComponent";
+import {getCreditCardNumber, getUser} from "../../Utils/UtilsBackendCalls";
+import {getCardNumber} from "../../Utils/UtilsFormat";
 
 let ListMyTransactionsComponent = () => {
 
     let [transactions, setTransactions] = useState([]);
-    let [sellerEmails, setSellerEmails] = useState(new Map());
-    let [creditCards, setCreditCards] = useState(new Map());
     let navigate = useNavigate();
     let {useBreakpoint} = Grid;
     let screens = useBreakpoint();
 
     useEffect(() => {
-
-        let getCreditCardNumber = async (creditCardId) => {
-            let response = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/creditCards/${creditCardId}`, {
-                method: "GET", headers: {
-                    "apikey": localStorage.getItem("apiKey")
-                }
-            });
-
-            if (response.ok) {
-                let jsonData = await response.json();
-                return jsonData.number;
-            } else {
-                let responseBody = await response.json();
-                responseBody.errors.forEach(e => {
-                    console.log("Error: " + e.msg);
-                });
-            }
-        }
 
         let getTransactions = async () => {
 
@@ -45,21 +27,26 @@ let ListMyTransactionsComponent = () => {
 
             if (response.ok) {
                 let jsonData = await response.json();
-                setTransactions(jsonData);
 
-                let updatedSellerEmails = new Map();
-                let updatedCreditCards = new Map();
+                let transactions = await Promise.all(
+                    jsonData.map(async t => {
+                        let [buyer, seller, cardNumber] = await Promise.all([
+                            getUser(t.buyerId),
+                            getUser(t.sellerId),
+                            getCreditCardNumber(t.buyerPaymentId)
+                        ]);
 
-                await Promise.all(jsonData.map(async (t) => {
-                    let email = (await getUser(t.sellerId)).email;
-                    updatedSellerEmails.set(t.tid, email);
+                        return {
+                            ...t,
+                            buyerEmail: buyer.email,
+                            sellerEmail: seller.email,
+                            card: getCardNumber(cardNumber),
+                        };
+                    })
+                );
 
-                    let card = await getCreditCardNumber(t.buyerPaymentId);
-                    updatedCreditCards.set(t.tid, card);
-                }));
+                setTransactions(transactions);
 
-                setSellerEmails(updatedSellerEmails);
-                setCreditCards(updatedCreditCards);
             } else {
                 let responseBody = await response.json();
                 responseBody.errors.forEach(e => {
@@ -70,6 +57,14 @@ let ListMyTransactionsComponent = () => {
 
         getTransactions();
     }, []);
+
+    let address = record => {
+        let s = "";
+        record.buyerAddress && (s += `${record.buyerAddress}, `);
+        record.buyerPostCode && (s += `${record.buyerPostCode}, `);
+        record.buyerCountry && (s += `${record.buyerCountry}`);
+        return s;
+    }
 
     let columns = [{
         title: "Product", key: "title", ellipsis: true,
@@ -85,18 +80,12 @@ let ListMyTransactionsComponent = () => {
         render: price => `${price.toFixed(2)} €`,
     }, {
         title: "Shipping Address", key: "buyerAddress", ellipsis: true, render: record => <Tooltip placement="topLeft"
-                                                                                                   title={`${record.buyerAddress}, ${record.buyerPostCode}, ${record.buyerCountry}`}>{`${record.buyerAddress}, ${record.buyerPostCode}, ${record.buyerCountry}`}</Tooltip>
+                                                                                                   title={address(record)}>{address(record)}</Tooltip>
     }, {
         title: "Purchase Date", dataIndex: "startDate", key: "startDate", render: date => timestampToString(date),
     }, {
         title: "Delivery Date", dataIndex: "endDate", key: "endDate", render: date => timestampToString(date),
     },];
-
-    let getCardNumber = (tid) => {
-        let fullNumber = creditCards.get(tid);
-        let last4Digits = fullNumber?.slice(-4);
-        return last4Digits?.padStart(fullNumber?.length, "*");
-    }
 
     let nestedColumns = [{
         title: 'Description',
@@ -105,16 +94,16 @@ let ListMyTransactionsComponent = () => {
         ellipsis: true,
         render: (_, product) => <Tooltip placement="topLeft" title={product.description}>{product.description}</Tooltip>
     }, {
-        title: 'Seller Email', key: 'sellerEmail', render: record => <Link to={`/users/${record.sellerId}`}>{sellerEmails.get(record.tid)}</Link>
+        title: 'Seller Email', key: 'sellerEmail', render: record => <Link to={`/users/${record.sellerId}`}>{record.sellerEmail}</Link>
     }, {
-        title: 'Payed With', key: 'buyerPaymentId', render: record => getCardNumber(record.tid)
+        title: 'Buyer Email', key: 'sellerEmail', render: record => <Link to={`/users/${record.buyerId}`}>{record.buyerEmail}</Link>
+    }, {
+        title: 'Payed With', key: 'buyerPaymentId', render: record => record.card
     }, {
         title: 'Category',
         dataIndex: 'category',
         key: 'category',
-        render: (_, {category}) => (<Tag color={categoryColors[category?.toLowerCase()] || "default"} key={category}>
-            {category.toUpperCase()}
-        </Tag>)
+        render: (_, {category}) => (<CategoryTagComponent category={category} letterCase="upper"/>)
     },];
 
     let expandedRowRender = record => (<Table
@@ -124,7 +113,6 @@ let ListMyTransactionsComponent = () => {
         rowKey="id"
     />);
 
-    let {Text, Paragraph} = Typography;
     return (<Row align="middle" justify="center" style={{paddingTop: "10vh"}}>
         <Col md={20}>
             {transactions.length === 0 ? (<Empty description="You haven't made any purchases yet."/>) : screens.lg ? (
@@ -135,45 +123,7 @@ let ListMyTransactionsComponent = () => {
                     dataSource={transactions}
                     pagination={{pageSize: 10}}
                     expandable={{expandedRowRender}}
-                />) : <List
-                dataSource={transactions}
-                grid={{gutter: 24, column: 1}}
-                pagination={{pageSize: 10}}
-                renderItem={transaction => {
-                    let cardNumber = getCardNumber(transaction.tid);
-                    return (<List.Item>
-                        <Card
-                            hoverable
-                            title={<Tooltip title={transaction.title}>
-                                {transaction.title}
-                            </Tooltip>}
-                            style={{
-                                height: "100%",
-                                cursor: "pointer",
-                                borderRadius: "12px",
-                                boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-                            }}
-                        >
-                            <Space direction="vertical">
-                                <Paragraph ellipsis={{rows: 2, expandable: true, symbol: 'more'}}>
-                                    {transaction.description}
-                                </Paragraph>
-                                {transaction.sellerId && <div>
-                                    <Text strong>Vendedor: </Text>
-                                    <Link to={`/users/${transaction.sellerId}`}>{sellerEmails.get(transaction.tid)}</Link>
-                                </div>}
-                                {cardNumber && <div>
-                                    <Text strong>Payed with: </Text> {cardNumber}
-                                </div>}
-                                <Tag color={categoryColors[transaction.category?.toLowerCase()] || "default"}
-                                     key={transaction.category}>
-                                    {transaction.category.toUpperCase()}
-                                </Tag>
-                            </Space>
-                        </Card>
-                    </List.Item>)
-                }}
-            />}
+                />) : <TransactionsListComponent transactions={transactions}/>}
         </Col>
     </Row>);
 };

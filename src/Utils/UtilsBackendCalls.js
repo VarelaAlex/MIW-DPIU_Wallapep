@@ -107,11 +107,29 @@ export let editProduct = async (id, formData) => {
     });
 
     if (response.ok) {
-        if(formData.image) {
+        if(formData.image && formData.image[0].uid !== "-1") {
             await uploadImage(id, formData.image);
         }
         return {ok: true};
     } else {
         return await response.json();
+    }
+}
+
+export let getCreditCardNumber = async (creditCardId) => {
+    let response = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/creditCards/${creditCardId}`, {
+        method: "GET", headers: {
+            "apikey": localStorage.getItem("apiKey")
+        }
+    });
+
+    if (response.ok) {
+        let jsonData = await response.json();
+        return jsonData.number;
+    } else {
+        let responseBody = await response.json();
+        responseBody.errors.forEach(e => {
+            console.log("Error: " + e.msg);
+        });
     }
 }
