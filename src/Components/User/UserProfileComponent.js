@@ -1,13 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import {Link, useParams} from 'react-router-dom';
-import {
-    Button, Card, Col, Descriptions, Divider, Empty, Image, Row, Space, Switch, Tooltip, Typography
-} from 'antd';
+import {Button, Card, Col, Descriptions, Divider, Empty, Row, Space, Switch, Typography} from 'antd';
 import {getCreditCardNumber, getTransactions, getUser} from "../../Utils/UtilsBackendCalls";
 import {checkURL} from "../../Utils/UtilsChecks";
-import CategoryTagComponent from "../Products/CategoryTagComponent";
 import TransactionsListComponent from "../Transactions/TransactionsListComponent";
 import {getCardNumber} from "../../Utils/UtilsFormat";
+import ProductCardComponent from "../Products/ProductCardComponent";
 
 const {Paragraph, Title} = Typography;
 
@@ -84,6 +82,7 @@ const UserProfileComponent = () => {
         <Card title={<Title level={3}>Perfil de {user.username}</Title>}
               style={{borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)'}}>
             <Descriptions column={1} bordered size="small">
+                <Descriptions.Item label="Full name">{`${user.name} ${user.surname}`}</Descriptions.Item>
                 <Descriptions.Item label="Email"><Link to={`/users/${user.id}`}>{user.email}</Link></Descriptions.Item>
                 <Descriptions.Item label="Country">{user.country}</Descriptions.Item>
                 <Descriptions.Item label="Address">
@@ -112,25 +111,14 @@ const UserProfileComponent = () => {
             <Row gutter={[16, 16]}>
                 {visibleProducts.map(p => (<Col xs={12} sm={8} lg={6} key={p.id}>
                     <Link to={`/products/${p.id}`}>
-                        <Card
-                            hoverable
-                            title={<Tooltip title={p.title}>{p.title}</Tooltip>}
-                            cover={<Image alt={p.title} src={p.image} preview={false}/>}
-                        >
-                            <Space direction="vertical">
-                                <Paragraph ellipsis={{rows: 2, expandable: true, symbol: 'more'}}>
-                                    {p.description}
-                                </Paragraph>
-                                <CategoryTagComponent category={p.category} letterCase="upper"/>
-                            </Space>
-                        </Card>
+                        <ProductCardComponent product={p}/>
                     </Link>
                 </Col>))}
             </Row>)}
 
         {visibleProductsCount < products.length && (<div style={{textAlign: 'center', marginTop: 16}}>
-                <Button onClick={handleLoadMore}>Load more products</Button>
-            </div>)}
+            <Button onClick={handleLoadMore}>Load more products</Button>
+        </div>)}
     </Space>);
 };
 

@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from "react";
-import {useNavigate} from "react-router-dom";
-import {Card, Checkbox, Col, Empty, Grid, Image, Radio, Row, Space, Typography} from 'antd';
+import {Checkbox, Col, Empty, Grid, Radio, Row, Space, Typography} from 'antd';
 import {categories} from "../../categories";
 import {getProductsWithImage} from "../../Utils/UtilsBackendCalls";
 import ProductSearchBarComponent from "./ProductSearchBarComponent";
 import CategorySelectComponent from "./CategorySelectComponent";
 import {FilterOutlined} from "@ant-design/icons";
+import ProductCardComponent from "./ProductCardComponent";
 
 let ListProductsComponent = () => {
     let [products, setProducts] = useState([]);
@@ -13,7 +13,6 @@ let ListProductsComponent = () => {
     let [searchTerm, setSearchTerm] = useState("");
     let [selectedCategories, setSelectedCategories] = useState([]);
     let [sortOrder, setSortOrder] = useState(null);
-    let navigate = useNavigate();
     let {useBreakpoint} = Grid;
     let screens = useBreakpoint();
 
@@ -57,11 +56,7 @@ let ListProductsComponent = () => {
         applyFilters();
     }, [products, searchTerm, selectedCategories, sortOrder]);
 
-    let disableImageStyle = {
-        opacity: 0.25,
-    }
-
-    let {Text, Title} = Typography;
+    let {Title} = Typography;
     return (<Space direction="vertical" style={{width: "100%"}}>
         <Title>Products</Title>
 
@@ -114,21 +109,7 @@ let ListProductsComponent = () => {
                 {filteredProducts.length === 0 ? (<Empty description="No products found" style={{width: '100%'}}/>) : (
                     <Row gutter={[16, 16]}>
                         {filteredProducts.map(p => (<Col xs={12} sm={8} lg={6} key={p.id}>
-                            <Card hoverable={!p.buyerEmail} title={p.title}
-                                  cover={<Image src={p.image} preview={false}
-                                                style={p.buyerEmail ? disableImageStyle : undefined}/>}
-                                  onClick={() => {
-                                      if (!p.buyerEmail) {
-                                          navigate(`/products/${p.id}`)
-                                      }
-                                  }}
-                                  extra={p.buyerEmail && <Text type="secondary">Vendido</Text>}>
-                                <Text strong style={{fontSize: 15}}>
-                                    {p.price?.toLocaleString("es-ES", {
-                                        style: "currency", currency: "EUR"
-                                    })}
-                                </Text>
-                            </Card>
+                            <ProductCardComponent product={p}/>
                         </Col>))}
                     </Row>)}
             </Col>

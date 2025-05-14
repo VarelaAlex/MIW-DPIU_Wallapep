@@ -26,15 +26,15 @@ const CreateUserComponent = ({openCustomNotification}) => {
     let [form] = Form.useForm();
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState({
-        email: "",
-        password: "",
-        name: "",
-        surname: "",
-        documentIdentity: "",
-        documentNumber: "",
-        country: "",
-        address: "",
-        postalCode: "",
+        email: null,
+        password: null,
+        name: null,
+        surname: null,
+        documentIdentity: null,
+        documentNumber: null,
+        country: null,
+        address: null,
+        postalCode: null,
         birthday: null
     });
     const [errors, setErrors] = useState([]);
@@ -48,12 +48,12 @@ const CreateUserComponent = ({openCustomNotification}) => {
                 password: formData.password,
                 name: formData.name,
                 surname: formData.surname,
-                documentIdentity: formData.documentIdentity,
-                documentNumber: formData.documentNumber,
-                country: formData.country,
-                address: formData.address,
-                postalCode: formData.postalCode,
-                birthday: formData.birthday?.valueOf()
+                documentIdentity: formData.documentIdentity && null,
+                documentNumber: formData.documentNumber && null,
+                country: formData.country && null,
+                address: formData.address && null,
+                postalCode: formData.postalCode && null,
+                birthday: formData.birthday?.valueOf() && null
             })
         });
 

@@ -57,11 +57,15 @@ let App = () => {
             if (!isActive && !login && !["/", "/login", "/register"].includes(href)) {
                 navigate("/login")
             }
+
+            if(isActive && login && ["/login", "/register"].includes(href)){
+                navigate("/")
+            }
         }
 
         let checkAll = async () => {
             let isActive = await checkLoginIsActive()
-            checkUserAccess(isActive)
+            await checkUserAccess(isActive)
         }
 
         checkAll()

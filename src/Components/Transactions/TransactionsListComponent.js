@@ -14,7 +14,7 @@ let TransactionsListComponent = ({transactions, toggleSellerBuyer = false, showA
             <Card
                 hoverable
                 title={<Tooltip title={transaction.title}>{transaction.title}</Tooltip>}
-                extra={<CategoryTagComponent category={transaction.category} letterCase={"upper"} />}
+                extra={<CategoryTagComponent category={transaction.category} />}
             >
                 <Space direction="vertical">
                     <Paragraph ellipsis={{rows: 2, expandable: true, symbol: 'more'}}>

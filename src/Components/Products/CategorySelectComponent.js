@@ -12,10 +12,12 @@ let CategorySelectComponent = (props) => {
         size = "middle",
         showSearch = true,
         popupMatchSelectWidth = true,
-        minWidth = 200
+        minWidth = 200,
+        value
     } = props;
 
     return (<Select
+        value={value}
         mode={mode}
         placeholder={placeholder}
         showSearch={showSearch}

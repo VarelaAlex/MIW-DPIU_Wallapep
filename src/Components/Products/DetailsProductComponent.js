@@ -19,12 +19,35 @@ let DetailsProductComponent = ({openCustomNotification}) => {
         getProduct();
     }, [id]);
 
+    let getUserCreditCard = async () => {
+        let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/creditCards/", {
+            method: "GET", headers: {
+                "Content-Type": "application/json ", "apikey": localStorage.getItem("apiKey")
+            }
+        });
+
+        if (response.ok) {
+            let jsonData = await response.json();
+            return jsonData[0];
+        } else {
+            let responseBody = await response.json();
+            let serverErrors = responseBody.errors;
+            serverErrors.forEach(e => {
+                console.log("Error: " + e.msg)
+            })
+        }
+    }
+
     let buyProduct = async () => {
+
+        let creditCard = await getUserCreditCard();
+
         let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/transactions/", {
             method: "POST", headers: {
                 "Content-Type": "application/json ", "apikey": localStorage.getItem("apiKey")
             }, body: JSON.stringify({
-                productId: id
+                productId: id,
+                buyerPaymentId: creditCard?.id
             })
         });
 

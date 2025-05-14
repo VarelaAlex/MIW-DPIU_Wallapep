@@ -107,7 +107,7 @@ export let editProduct = async (id, formData) => {
     });
 
     if (response.ok) {
-        if(formData.image && formData.image[0].uid !== "-1") {
+        if(formData.image && formData.image[0]?.uid !== "-1") {
             await uploadImage(id, formData.image);
         }
         return {ok: true};
