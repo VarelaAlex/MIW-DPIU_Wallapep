@@ -103,7 +103,7 @@ let App = () => {
                     <Route path="/register"
                            element={<CreateUserComponent openCustomNotification={openCustomNotification}/>}/>
                     <Route path="/login" element={<LoginFormComponent setLogin={setLogin}/>}/>
-                    <Route path="/products" element={<ListProductsComponent/>}/>
+                    <Route path="/products" element={<ListProductsComponent openCustomNotification={openCustomNotification}/>}/>
                     <Route path="/products/edit/:id"
                            element={<EditProductComponent openCustomNotification={openCustomNotification}/>}/>
                     <Route path="/products/:id"

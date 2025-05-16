@@ -11,6 +11,7 @@ let HomeComponent = () => {
 
         let getProducts = async () => {
             let products = await getProductsWithImage();
+            products = products?.filter(product => !product.buyerEmail)
             setProducts(products);
         }
 
@@ -35,17 +36,17 @@ let HomeComponent = () => {
             </Row>
 
             {categories.map(cat => {
-                let limitedProducts = products?.filter((product) => product.category === cat).slice(0, 5);
+                let limitedProducts = products?.filter((product) => product?.category?.toLowerCase() === cat?.toLowerCase()).slice(0, 5);
 
-                if (!products || !products.length === 0 || limitedProducts?.length === 0) {
+                if (!products || products.length === 0 || limitedProducts?.length === 0) {
                     return null;
                 }
                 return <Collapse
                     style={{marginTop: "2vh"}}
                     items={[{
-                        key: cat, label: cat, children: <Row gutter={[16, 16]}>
+                        key: cat, label: cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase(), children: <Row gutter={[16, 16]}>
                             {limitedProducts?.map((product) => (<Col xs={24} sm={12} md={8} lg={6} key={product.id}>
-                                <ProductCardComponent product={product}/>
+                                <ProductCardComponent product={product} />
                             </Col>))}
                         </Row>,
                     },]}/>

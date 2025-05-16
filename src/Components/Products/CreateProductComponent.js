@@ -1,6 +1,9 @@
 import {useNavigate} from "react-router-dom";
 import ProductFormComponent from "./ProductFormComponent";
 import {uploadImage} from "../../Utils/UtilsBackendCalls";
+import {ShoppingOutlined} from "@ant-design/icons";
+import React from "react";
+import {Typography} from "antd";
 
 let CreateProductComponent = ({openCustomNotification}) => {
     let navigate = useNavigate();
@@ -26,8 +29,9 @@ let CreateProductComponent = ({openCustomNotification}) => {
         }
     };
 
+    let {Title} = Typography;
     return <ProductFormComponent
-        title="Create product"
+        title={<Title level={4}><ShoppingOutlined/> Create product</Title>}
         buttonText="Sell Product"
         onSubmit={handleCreate}
         isImageRequired={true}

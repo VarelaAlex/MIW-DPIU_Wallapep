@@ -1,7 +1,8 @@
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import ProductFormComponent from "./ProductFormComponent";
 import {editProduct, getProductById} from "../../Utils/UtilsBackendCalls";
+import {Empty, Space} from "antd";
 
 let EditProductComponent = ({openCustomNotification}) => {
     let navigate = useNavigate();
@@ -15,7 +16,7 @@ let EditProductComponent = ({openCustomNotification}) => {
                 uid: '-1',
                 name: 'imagen.png',
                 status: 'done',
-                url: `${product.image}?t=${Date.now()}`
+                url: `${product?.image}?t=${Date.now()}`
             }];
             setInitialValues({...product, image: fileList});
         };
@@ -24,7 +25,7 @@ let EditProductComponent = ({openCustomNotification}) => {
     }, [id]);
 
     const handleEdit = async (formData, setErrors) => {
-        let response = await editProduct(id, formData);
+        let response = await editProduct(id, formData, false);
         if (response.ok) {
             openCustomNotification("top", "Product updated", "success");
             navigate("/products/own");
@@ -32,6 +33,12 @@ let EditProductComponent = ({openCustomNotification}) => {
             setErrors(response.errors);
         }
     };
+
+    if (!initialValues?.title) {
+        return (<Space direction="vertical" style={{width: '100%'}}>
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="This product does not exist"/>
+        </Space>)
+    }
 
     return initialValues ? (
         <ProductFormComponent

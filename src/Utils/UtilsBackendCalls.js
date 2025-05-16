@@ -99,7 +99,7 @@ export let uploadImage = async (productId, image) => {
     }
 }
 
-export let editProduct = async (id, formData) => {
+export let editProduct = async (id, formData, inlineEdit) => {
     let response = await fetch(process.env.REACT_APP_BACKEND_BASE_URL + "/products/" + id, {
         method: "PUT", headers: {
             "Content-Type": "application/json", "apikey": localStorage.getItem("apiKey")
@@ -107,7 +107,7 @@ export let editProduct = async (id, formData) => {
     });
 
     if (response.ok) {
-        if(formData.image && formData.image[0]?.uid !== "-1") {
+        if(formData.image && formData.image[0]?.uid !== "-1" && !inlineEdit) {
             await uploadImage(id, formData.image);
         }
         return {ok: true};
@@ -133,3 +133,4 @@ export let getCreditCardNumber = async (creditCardId) => {
         });
     }
 }
+

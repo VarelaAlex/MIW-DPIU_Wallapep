@@ -1,7 +1,7 @@
 import {Alert, Card, Col, Form, Input, InputNumber, Row, Upload} from "antd";
 import {InboxOutlined} from "@ant-design/icons";
 import {modifyStateProperty} from "../../Utils/UtilsState";
-import DisabledButtonComponent from "../Buttons/DisabledButtonComponent";
+import SubmitButtonComponent from "../Buttons/SubmitButtonComponent";
 import {useState} from "react";
 import CategorySelectComponent from "./CategorySelectComponent";
 
@@ -27,11 +27,13 @@ let ProductFormComponent = ({initialValues = {}, onSubmit, title, buttonText, is
                     >
                         <Form.Item name="title" rules={[{required: true, message: "The title is required"}]}>
                             <Input
+                                allowClear
                                 onChange={(i) => modifyStateProperty(formData, setFormData, "title", i.currentTarget.value)}
                                 size="large" placeholder="Product title"/>
                         </Form.Item>
                         <Form.Item name="description" rules={[{required: true, message: "The description is required"}]}>
                             <TextArea
+                                allowClear
                                 onChange={(i) => modifyStateProperty(formData, setFormData, "description", i.currentTarget.value)}
                                 placeholder="Description"
                                 autoSize={{ minRows: 3, maxRows: 5 }}
@@ -74,9 +76,9 @@ let ProductFormComponent = ({initialValues = {}, onSubmit, title, buttonText, is
                             </Upload.Dragger>
                         </Form.Item>
                         <Form.Item>
-                            <DisabledButtonComponent form={form} onClick={() => onSubmit(formData, setErrors, form)}>
+                            <SubmitButtonComponent form={form} onClick={() => onSubmit(formData, setErrors, form)}>
                                 {buttonText}
-                            </DisabledButtonComponent>
+                            </SubmitButtonComponent>
                         </Form.Item>
                     </Form>
                 </Card>

@@ -2,7 +2,7 @@ import {useState} from "react";
 import {modifyStateProperty} from "../../Utils/UtilsState";
 import {Link, useNavigate} from "react-router-dom";
 import {Alert, Card, Col, Form, Image, Input, Row, Typography} from "antd";
-import DisabledButtonComponent from "../Buttons/DisabledButtonComponent";
+import SubmitButtonComponent from "../Buttons/SubmitButtonComponent";
 
 let LoginFormComponent = ({setLogin}) => {
 
@@ -59,7 +59,7 @@ let LoginFormComponent = ({setLogin}) => {
                             type: "email", message: "Please enter a valid email address"
                         },]}
                     >
-                        <Input placeholder="Your email" onChange={(i) => {
+                        <Input allowClear placeholder="Your email" onChange={(i) => {
                             modifyStateProperty(formData, setFormData, "email", i.currentTarget.value)
                         }}/>
                     </Form.Item>
@@ -68,12 +68,12 @@ let LoginFormComponent = ({setLogin}) => {
                         name="password"
                         rules={[{required: true, message: "Please enter your password"}]}
                     >
-                        <Input.Password placeholder="Your password" onChange={(i) => {
+                        <Input.Password allowClear placeholder="Your password" onChange={(i) => {
                             modifyStateProperty(formData, setFormData, "password", i.currentTarget.value)
                         }}/>
                     </Form.Item>
                     <Form.Item>
-                        <DisabledButtonComponent form={form} submit>Login user</DisabledButtonComponent>
+                        <SubmitButtonComponent form={form} submit>Login user</SubmitButtonComponent>
                     </Form.Item>
                 </Form>
                 <Card.Meta description={<Typography.Text>Don't have an account yet? <Link to="/register">Sign up here</Link></Typography.Text>}></Card.Meta>

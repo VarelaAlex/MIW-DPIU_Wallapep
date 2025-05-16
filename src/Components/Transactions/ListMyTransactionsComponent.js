@@ -1,17 +1,18 @@
 import React, {useEffect, useState} from "react";
-import {Col, Empty, Grid, Row, Table, Tooltip, Typography} from "antd";
-import {Link, useNavigate} from "react-router-dom";
+import {Col, Empty, Grid, Row, Space, Table, Tooltip, Typography} from "antd";
+import {Link} from "react-router-dom";
 import {timestampToString} from "../../Utils/UtilsDates";
 import './striped-table.css'
 import CategoryTagComponent from "../Products/CategoryTagComponent";
 import TransactionsListComponent from "./TransactionsListComponent";
 import {getCreditCardNumber, getUser} from "../../Utils/UtilsBackendCalls";
 import {getCardNumber} from "../../Utils/UtilsFormat";
+import {EuroCircleOutlined} from "@ant-design/icons";
 
 let ListMyTransactionsComponent = () => {
 
     let [transactions, setTransactions] = useState([]);
-    let navigate = useNavigate();
+    let [pageSize, setPageSize] = useState(5);
     let {useBreakpoint} = Grid;
     let screens = useBreakpoint();
 
@@ -28,22 +29,13 @@ let ListMyTransactionsComponent = () => {
             if (response.ok) {
                 let jsonData = await response.json();
 
-                let transactions = await Promise.all(
-                    jsonData.map(async t => {
-                        let [buyer, seller, cardNumber] = await Promise.all([
-                            getUser(t.buyerId),
-                            getUser(t.sellerId),
-                            getCreditCardNumber(t.buyerPaymentId)
-                        ]);
+                let transactions = await Promise.all(jsonData.map(async t => {
+                    let [buyer, seller, cardNumber] = await Promise.all([getUser(t.buyerId), getUser(t.sellerId), getCreditCardNumber(t.buyerPaymentId)]);
 
-                        return {
-                            ...t,
-                            buyerEmail: buyer.email,
-                            sellerEmail: seller.email,
-                            card: getCardNumber(cardNumber),
-                        };
-                    })
-                );
+                    return {
+                        ...t, buyerEmail: buyer.email, sellerEmail: seller.email, card: getCardNumber(cardNumber),
+                    };
+                }));
 
                 setTransactions(transactions);
 
@@ -69,9 +61,9 @@ let ListMyTransactionsComponent = () => {
     let columns = [{
         title: "Product", key: "title", ellipsis: true,
 
-        render: record => (<Typography.Link onClick={() => navigate(`/products/${record.id}`)}>
+        render: record => (<Link to={`/products/${record.id}`}>
             <Tooltip placement="topLeft" title={record.title}>{record.title}</Tooltip>
-        </Typography.Link>)
+        </Link>)
     }, {
         title: "Price",
         dataIndex: "productPrice",
@@ -94,9 +86,13 @@ let ListMyTransactionsComponent = () => {
         ellipsis: true,
         render: (_, product) => <Tooltip placement="topLeft" title={product.description}>{product.description}</Tooltip>
     }, {
-        title: 'Seller Email', key: 'sellerEmail', render: record => <Link to={`/users/${record.sellerId}`}>{record.sellerEmail}</Link>
+        title: 'Seller Email',
+        key: 'sellerEmail',
+        render: record => <Link to={`/users/${record.sellerId}`}>{record.sellerEmail}</Link>
     }, {
-        title: 'Buyer Email', key: 'sellerEmail', render: record => <Link to={`/users/${record.buyerId}`}>{record.buyerEmail}</Link>
+        title: 'Buyer Email',
+        key: 'sellerEmail',
+        render: record => <Link to={`/users/${record.buyerId}`}>{record.buyerEmail}</Link>
     }, {
         title: 'Payed With', key: 'buyerPaymentId', render: record => record.card
     }, {
@@ -113,19 +109,32 @@ let ListMyTransactionsComponent = () => {
         rowKey="id"
     />);
 
-    return (<Row align="middle" justify="center" style={{paddingTop: "10vh"}}>
-        <Col md={20}>
-            {transactions.length === 0 ? (<Empty description="You haven't made any purchases yet."/>) : screens.lg ? (
-                <Table
+    let {Title} = Typography;
+    return (<Space direction="vertical" style={{width:'100%'}}>
+        <Row align="middle" justify="start">
+            <Col>
+                <Title><EuroCircleOutlined/> My transactions</Title>
+            </Col>
+        </Row>
+        <Row align="middle" justify="center" style={{paddingTop: "10vh"}}>
+            <Col md={20}>
+                {transactions.length === 0 ? (
+                    <Empty description="You haven't made any purchases yet."/>) : screens.lg ? (<Table
                     rowClassName={(_, index) => index % 2 === 0 ? 'table-row-light' : 'table-row-dark'}
                     rowKey="id"
                     columns={columns}
                     dataSource={transactions}
-                    pagination={{pageSize: 10}}
+                    pagination={{
+                        pageSize,
+                        showSizeChanger: true,
+                        pageSizeOptions: ['5', '10', '20', '50'],
+                        onShowSizeChange: (current, size) => setPageSize(size)
+                    }}
                     expandable={{expandedRowRender}}
                 />) : <TransactionsListComponent transactions={transactions}/>}
-        </Col>
-    </Row>);
+            </Col>
+        </Row>
+    </Space>);
 };
 
 export default ListMyTransactionsComponent;

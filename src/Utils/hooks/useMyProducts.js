@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Button, notification} from "antd";
+import {checkURL} from "../UtilsChecks";
 
 export let useMyProducts = (openCustomNotification) => {
 
@@ -36,6 +37,12 @@ export let useMyProducts = (openCustomNotification) => {
                     product.key = product.id
                     return product
                 })
+                await Promise.all(jsonData.map(async (p) => {
+                    let urlImage = `${process.env.REACT_APP_BACKEND_BASE_URL}/images/${p.id}.png`;
+                    let existsImage = await checkURL(urlImage);
+                    p.image = existsImage ? urlImage : "/imageMockup.png";
+                    return p;
+                }));
                 setProducts(jsonData)
                 setFilteredProducts(jsonData);
                 updateStatistics(jsonData);

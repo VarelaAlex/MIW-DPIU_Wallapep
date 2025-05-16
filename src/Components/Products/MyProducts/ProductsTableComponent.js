@@ -46,7 +46,7 @@ let ProductsTableComponent = (props) => {
             let item = newData[index];
             let updatedItem = {...item, ...editableFields};
 
-            let response = await editProduct(key, updatedItem);
+            let response = await editProduct(key, updatedItem, true);
 
             if (response.ok) {
                 newData.splice(index, 1, updatedItem);
@@ -109,9 +109,12 @@ let ProductsTableComponent = (props) => {
         render: (_, {category}) => (<Tag color={categoryColors[category?.toLowerCase()] || "default"} key={category}>
             {category.toUpperCase()}
         </Tag>),
-        filterDropdown: <CategorySelectComponent onChange={(values)=>setSelectedCategories(values)} placeholder="Filer by category" mode="multiple"/>,
+        filterDropdown: <CategorySelectComponent onChange={(values)=> {
+            values = values.map((cat)=>cat.toLowerCase());
+            setSelectedCategories(values)
+        }} placeholder="Filer by category" mode="multiple"/>,
         filteredValue: selectedCategories,
-        onFilter: (value, record) => selectedCategories.length === 0 || selectedCategories.includes(record.category)
+        onFilter: (value, record) => selectedCategories.length === 0 || selectedCategories.includes(record.category.toLowerCase())
     }, {
         title: "Date",
         dataIndex: "date",

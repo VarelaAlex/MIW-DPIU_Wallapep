@@ -1,10 +1,10 @@
-export let categories = ["Consolas", "Plantas", "Ropa", "Complementos", "Muebles", "Juguetes", "Herramientas"];
+export let categories = ["consoles", "plants", "clothing", "accessories", "furniture", "toys", "tools"];
 export const categoryColors = {
-    consolas: "geekblue",
-    plantas: "green",
-    ropa: "purple",
-    complementos: "magenta",
-    muebles: "volcano",
-    juguetes: "gold",
-    herramientas: "cyan"
+    consoles: "geekblue",
+    plants: "green",
+    clothing: "purple",
+    accessories: "magenta",
+    furniture: "volcano",
+    toys: "gold",
+    tools: "cyan"
 };

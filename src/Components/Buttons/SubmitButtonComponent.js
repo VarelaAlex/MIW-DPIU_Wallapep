@@ -1,7 +1,7 @@
 import {Button, Form} from "antd";
 import {useEffect, useState} from "react";
 
-let DisabledButtonComponent = ({form, submit, onClick, children}) => {
+let SubmitButtonComponent = ({form, submit, onClick, children}) => {
     let [submittable, setSubmittable] = useState(false);
     let values = Form.useWatch([], form);
 
@@ -17,4 +17,4 @@ let DisabledButtonComponent = ({form, submit, onClick, children}) => {
         </Button>);
 };
 
-export default DisabledButtonComponent;
+export default SubmitButtonComponent;

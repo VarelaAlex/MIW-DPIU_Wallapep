@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Link, useParams} from 'react-router-dom';
-import {Button, Card, Col, Descriptions, Divider, Empty, Row, Space, Switch, Typography} from 'antd';
+import {Button, Card, Col, Descriptions, Divider, Empty, Image, Row, Switch, Typography} from 'antd';
 import {getCreditCardNumber, getTransactions, getUser} from "../../Utils/UtilsBackendCalls";
 import {checkURL} from "../../Utils/UtilsChecks";
 import TransactionsListComponent from "../Transactions/TransactionsListComponent";
@@ -21,12 +21,11 @@ const UserProfileComponent = () => {
         setVisibleProductsCount(prev => prev + 5);
     };
 
-    const visibleProducts = products.slice(0, visibleProductsCount);
+    const visibleProducts = products?.slice(0, visibleProductsCount);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-
                 const userData = await getUser(id);
                 setUser(userData);
 
@@ -76,50 +75,52 @@ const UserProfileComponent = () => {
         fetchTransactions();
     }, [id, showAsBuyer]);
 
-    if (!user) return <div>User not found</div>;
+    return (<Row align="middle" justify="center">
+        {user ? <Col md={20}>
+            <Card title={<Title level={3}>{user.name}'s profile</Title>}
+                  style={{borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)'}}>
+                <Descriptions column={1} bordered size="small">
+                    <Descriptions.Item label="Full name">{`${user.name} ${user.surname}`}</Descriptions.Item>
+                    <Descriptions.Item label="Email"><Link
+                        to={`/users/${user.id}`}>{user.email}</Link></Descriptions.Item>
+                    <Descriptions.Item label="Country">{user.country}</Descriptions.Item>
+                    <Descriptions.Item label="Address">
+                        <Paragraph ellipsis={{rows: 2, expandable: true, symbol: 'more'}}>
+                            {user.address && user.address + ","} {user.postalCode && user.postalCode}
+                        </Paragraph>
+                    </Descriptions.Item>
+                </Descriptions>
+            </Card>
 
-    return (<Space direction="vertical" style={{width: '100%'}}>
-        <Card title={<Title level={3}>Perfil de {user.username}</Title>}
-              style={{borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)'}}>
-            <Descriptions column={1} bordered size="small">
-                <Descriptions.Item label="Full name">{`${user.name} ${user.surname}`}</Descriptions.Item>
-                <Descriptions.Item label="Email"><Link to={`/users/${user.id}`}>{user.email}</Link></Descriptions.Item>
-                <Descriptions.Item label="Country">{user.country}</Descriptions.Item>
-                <Descriptions.Item label="Address">
-                    <Paragraph ellipsis={{rows: 2, expandable: true, symbol: 'more'}}>
-                        {user.address && user.address + ","} {user.postalCode && user.postalCode}
-                    </Paragraph>
-                </Descriptions.Item>
-            </Descriptions>
-        </Card>
+            <Divider orientation="left">
+                Transactions as
+                <Switch
+                    checked={showAsBuyer}
+                    onChange={() => setShowAsBuyer(!showAsBuyer)}
+                    style={{marginLeft: '1rem'}}
+                    checkedChildren="Buyer"
+                    unCheckedChildren="Seller"
+                />
+            </Divider>
 
-        <Divider orientation="left">
-            Transactions as
-            <Switch
-                checked={showAsBuyer}
-                onChange={() => setShowAsBuyer(!showAsBuyer)}
-                style={{marginLeft: '1rem'}}
-                checkedChildren="Buyer"
-                unCheckedChildren="Seller"
-            />
-        </Divider>
+            <TransactionsListComponent transactions={transactions} showAsBuyer={showAsBuyer} toggleSellerBuyer/>
 
-        <TransactionsListComponent transactions={transactions} showAsBuyer={showAsBuyer} toggleSellerBuyer/>
+            <Divider orientation="left">Products for sale</Divider>
+            {visibleProducts.length === 0 ? (<Empty description="No products found" style={{width: '100%'}}/>) : (
+                <Row gutter={[16, 16]}>
+                    {visibleProducts.map(p => (<Col xs={24} sm={8} lg={6} key={p.id}>
+                            <ProductCardComponent product={p} showSold/>
+                    </Col>))}
+                </Row>)}
 
-        <Divider orientation="left">Products for sale</Divider>
-        {visibleProducts.length === 0 ? (<Empty description="No products found" style={{width: '100%'}}/>) : (
-            <Row gutter={[16, 16]}>
-                {visibleProducts.map(p => (<Col xs={12} sm={8} lg={6} key={p.id}>
-                    <Link to={`/products/${p.id}`}>
-                        <ProductCardComponent product={p}/>
-                    </Link>
-                </Col>))}
-            </Row>)}
-
-        {visibleProductsCount < products.length && (<div style={{textAlign: 'center', marginTop: 16}}>
-            <Button onClick={handleLoadMore}>Load more products</Button>
-        </div>)}
-    </Space>);
+            {visibleProductsCount < products.length && (<div style={{textAlign: 'center', marginTop: 16}}>
+                <Button onClick={handleLoadMore}>Load more products</Button>
+            </div>)}
+        </Col> : <Col md={20}>
+            <Empty image={<Image src="/user-not-found.png" preview={false} height={100}/>}
+                   description="User not found"/>
+        </Col>}
+    </Row>);
 };
 
 export default UserProfileComponent;

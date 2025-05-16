@@ -26,8 +26,10 @@ let CategorySelectComponent = (props) => {
         style={{minWidth}}
         size={size}
         allowClear
+        maxTagCount='responsive'
+        maxTagPlaceholder="+"
         options={categories.map((cat) => ({
-            label: <CategoryTagComponent category={cat}/>, value: cat
+            label: <CategoryTagComponent category={cat}/>, value: cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase(),
         }))}
     />);
 };

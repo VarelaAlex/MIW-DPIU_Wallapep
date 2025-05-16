@@ -2,6 +2,7 @@ import React from "react";
 import {Link, useNavigate} from "react-router-dom";
 import {Image, Menu} from 'antd';
 import {
+    DropboxOutlined,
     EuroCircleOutlined, LoginOutlined, LogoutOutlined, ProductOutlined, ShoppingOutlined, UserAddOutlined
 } from '@ant-design/icons';
 
@@ -33,7 +34,7 @@ let MenuAppComponent = ({login, setLogin}) => {
             key: "logo", label: <Image src="/logo.png" width="40px" height="40px" preview={false}
                                        onClick={() => navigate("/")}/>
         }, {key: "menuProducts", icon: <ProductOutlined/>, label: <Link to="/products">Products</Link>}, {
-            key: "menuMyProduct", label: <Link to="/products/own">My Products</Link>
+            key: "menuMyProduct", icon: <DropboxOutlined/>, label: <Link to="/products/own">My Products</Link>
         }, {
             key: "menuTransactions",
             icon: <EuroCircleOutlined/>,
